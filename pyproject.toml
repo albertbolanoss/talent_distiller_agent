@@ -1,0 +1,22 @@
+[project]
+name = "candidate-match-agent"
+version = "0.1.0"
+description = "This AI agent analyzes job postings against resumes to identify matching skills and rank candidates."
+readme = "README.md"
+authors = [
+    { name = "Luis Alberto Bolaños Salazar", email = "68343185+albertbolanoss@users.noreply.github.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "anyio>=4.15.1",
+    "claude-agent-sdk>=0.2.174",
+    "pydantic>=2.14.1",
+    "python-dotenv>=1.2.4",
+]
+
+[project.scripts]
+candidate-match-agent = "candidate_match_agent.main:main"
+
+[build-system]
+requires = ["uv_build>=0.12.2,<0.13.0"]
+build-backend = "uv_build"
