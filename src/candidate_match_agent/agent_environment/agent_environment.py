@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from candidate_match_agent.environment.settings import Provider, Settings
+from candidate_match_agent.libs.settings import Provider, Settings
 
 
 @dataclass(frozen=True, slots=True)

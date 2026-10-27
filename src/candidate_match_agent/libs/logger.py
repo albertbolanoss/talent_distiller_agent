@@ -10,7 +10,7 @@ an MCP stdio subprocess, and anything printed to stdout there would corrupt the 
 import logging
 import sys
 
-from candidate_match_agent.environment.settings import get_settings
+from candidate_match_agent.libs.settings import get_settings
 
 _ROOT_LOGGER_NAME = "labs_resume_agent"
 _configured = False
