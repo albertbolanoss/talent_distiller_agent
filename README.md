@@ -2,6 +2,15 @@
 
 This AI agent analyzes job postings against resumes to identify matching skills and rank candidates.
 
+This agent's shared utilities (settings, logging, document text extraction, agent environment) live in their own
+sibling repo, `labs-agent-lib`, and are consumed here as a regular dependency (see `labs-agent-lib` in
+`[project.dependencies]` and the `[tool.uv.sources]` override in `pyproject.toml`). During local development it
+resolves to `../labs-agent-lib` on disk, so that repo needs to be checked out as a sibling of this one (same
+parent folder).
+
+Once `labs-agent-lib` is published to PyPI, the path override in `[tool.uv.sources]` can be dropped so `uv.lock`
+pins a released version instead of the local checkout.
+
 ## Prerequisites.
 
 - [uv](https://docs.astral.sh/uv/getting-started/installation/)
@@ -53,7 +62,10 @@ Tests live under `tests/` and use `pytest` + `pytest-cov`. `uv sync` already ins
 uv run pytest
 ```
 
-This also prints a coverage report for `libs/file_reader` (configured in `pyproject.toml`); a line is only "covered" if a test actually executes it, and `Missing` lists any line numbers that aren't.
+This also prints a coverage report for `src/candidate_match_agent` (configured in `pyproject.toml`); a line is only "covered" if a test actually executes it, and `Missing` lists any line numbers that aren't.
+
+`labs-agent-lib` has its own repo, `pyproject.toml`, and test suite with a 100% coverage gate — see
+`../labs-agent-lib/README.md` and `../labs-agent-lib/PUBLISHING.md`.
 
 
 uv run python -m candidate_match_agent.coordinators "us.anthropic.claude-sonnet-5" "resume/Resume_Luis_Alberto_Bolanos_Salazar.docx.pdf"

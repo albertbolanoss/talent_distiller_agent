@@ -3,9 +3,10 @@
 import asyncio
 from pathlib import Path
 
+from labs_agent_lib import get_settings
+from labs_agent_lib.file_reader import SUPPORTED_EXTENSIONS
+
 from .coordinators.coordinator import run_coordinator
-from .libs import get_settings
-from .libs.file_reader import SUPPORTED_EXTENSIONS
 
 MODEL = "us.anthropic.claude-sonnet-5"
 

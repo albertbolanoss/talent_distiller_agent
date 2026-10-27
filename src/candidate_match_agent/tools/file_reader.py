@@ -4,7 +4,7 @@ from typing import Annotated, TypedDict
 
 from claude_agent_sdk import ToolAnnotations, tool
 
-from candidate_match_agent.libs.file_reader import SUPPORTED_EXTENSIONS, extract_text
+from labs_agent_lib.file_reader import SUPPORTED_EXTENSIONS, extract_text
 
 
 class ReadDocumentInput(TypedDict):

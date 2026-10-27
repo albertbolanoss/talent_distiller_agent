@@ -12,7 +12,7 @@ from claude_agent_sdk import (
     UserMessage,
 )
 
-from candidate_match_agent.libs import get_logger
+from labs_agent_lib import get_logger
 
 logger = get_logger(__name__)
 MODULE = "[message_stream_handler]"

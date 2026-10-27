@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from candidate_match_agent.libs.file_reader.errors import UnsupportedFileTypeError
+from labs_agent_lib.file_reader.errors import UnsupportedFileTypeError
 from candidate_match_agent.tools.file_reader import read_document
 
 

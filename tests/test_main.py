@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 import candidate_match_agent.main as main_module
-from candidate_match_agent.libs.settings import Settings
+from labs_agent_lib.settings import Settings
 
 
 class _StopLoop(Exception):
