@@ -44,6 +44,11 @@ class Settings(BaseSettings):
     resume_poll_interval_seconds: float = 300
     resume_max_files_per_batch: int = 3
 
+    disable_prompt_caching: bool = False
+    """Disables Anthropic prompt caching (no `cache_control` breakpoints) for the agent's requests.
+    Enable during development (CANDIDATE_MATCH_AGENT_DISABLE_PROMPT_CACHING=true) when iterating on the
+    system prompt, since a cached prefix can otherwise be reused across runs within the cache's TTL."""
+
 
 @lru_cache
 def get_settings() -> Settings:
