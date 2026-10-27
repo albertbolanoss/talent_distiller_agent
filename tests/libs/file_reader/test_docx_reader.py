@@ -14,10 +14,10 @@ def _make_docx(tmp_path: Path, paragraphs: list[str], name: str = "resume.docx")
     return path
 
 
-def test_joins_paragraphs_with_newlines_in_order(tmp_path: Path):
+def test_joins_paragraphs_with_blank_lines_in_order(tmp_path: Path):
     path = _make_docx(tmp_path, ["Candidate: Jane Doe", "Skills: Python, SQL"])
 
-    assert read_docx(path) == "Candidate: Jane Doe\nSkills: Python, SQL"
+    assert read_docx(path) == "Candidate: Jane Doe\n\nSkills: Python, SQL"
 
 
 def test_strips_leading_and_trailing_blank_paragraphs(tmp_path: Path):
@@ -32,7 +32,7 @@ def test_empty_document_returns_empty_string(tmp_path: Path):
     assert read_docx(path) == ""
 
 
-def test_table_text_is_not_included(tmp_path: Path):
+def test_table_text_is_included(tmp_path: Path):
     document = Document()
     document.add_paragraph("Candidate: Jane Doe")
     table = document.add_table(rows=1, cols=1)
@@ -40,4 +40,4 @@ def test_table_text_is_not_included(tmp_path: Path):
     path = tmp_path / "with_table.docx"
     document.save(path)
 
-    assert read_docx(path) == "Candidate: Jane Doe"
+    assert read_docx(path) == "Candidate: Jane Doe\n\nSkill: Python"
