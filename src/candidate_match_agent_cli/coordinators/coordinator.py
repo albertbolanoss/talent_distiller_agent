@@ -39,5 +39,5 @@ async def run_coordinator(model: str, resume_path: str) -> dict:
 
     result = {"resume_path": resume_path, "content": content}
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-    print(result)
+    
     return result

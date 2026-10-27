@@ -98,16 +98,3 @@ async def test_sleeps_for_the_configured_poll_interval_between_batches(
         await main_module.process_resumes()
 
     assert sleep_calls == [7]
-
-
-def test_main_runs_process_resumes(monkeypatch: pytest.MonkeyPatch):
-    calls = []
-
-    async def fake_process_resumes() -> None:
-        calls.append(True)
-
-    monkeypatch.setattr(main_module, "process_resumes", fake_process_resumes)
-
-    main_module.main()
-
-    assert calls == [True]

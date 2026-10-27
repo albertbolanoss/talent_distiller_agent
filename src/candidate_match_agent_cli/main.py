@@ -1,4 +1,8 @@
-"""Entrypoint: periodically reads resume files via the coordinator agent."""
+"""Background loop: periodically reads resume files via the coordinator agent.
+
+Started by `candidate_match_agent_cli.api.app`'s lifespan, inside the same process as the
+resume-upload API - see `candidate-match-agent-api` in `[project.scripts]`.
+"""
 
 import asyncio
 from pathlib import Path
@@ -8,7 +12,7 @@ from labs_agent_lib.file_reader import SUPPORTED_EXTENSIONS
 
 from .coordinators.coordinator import run_coordinator
 
-MODEL = "us.anthropic.claude-sonnet-5"
+MODEL = "us.anthropic.claude-haiku-4-5-20251001-v1:0"
 
 
 async def process_resumes() -> None:
@@ -26,11 +30,3 @@ async def process_resumes() -> None:
         )
 
         await asyncio.sleep(settings.resume_poll_interval_seconds)
-
-
-def main() -> None:
-    asyncio.run(process_resumes())
-
-
-if __name__ == "__main__":
-    main()

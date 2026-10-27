@@ -1,0 +1,6 @@
+apiVersion: v2
+name: candidate-match-agent-cli
+description: Resume-matching agent - resume-upload API and background resume-processing loop.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

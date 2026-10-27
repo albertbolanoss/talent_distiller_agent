@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "candidate-match-agent-cli.fullname" . }}
+  labels:
+    {{- include "candidate-match-agent-cli.labels" . | nindent 4 }}
+data:
+  CANDIDATE_MATCH_AGENT_PROVIDER: {{ .Values.config.provider | quote }}
+  CANDIDATE_MATCH_AGENT_LOG_LEVEL: {{ .Values.config.logLevel | quote }}
+  CANDIDATE_MATCH_AGENT_RESUME_DIR: {{ .Values.config.resumeDir | quote }}
+  CANDIDATE_MATCH_AGENT_RESUME_POLL_INTERVAL_SECONDS: {{ .Values.config.resumePollIntervalSeconds | quote }}
+  CANDIDATE_MATCH_AGENT_RESUME_MAX_FILES_PER_BATCH: {{ .Values.config.resumeMaxFilesPerBatch | quote }}
+  CANDIDATE_MATCH_AGENT_DISABLE_PROMPT_CACHING: {{ .Values.config.disablePromptCaching | quote }}
+  CANDIDATE_MATCH_AGENT_PORTKEY_VIRTUAL: {{ .Values.config.portkeyVirtual | quote }}
