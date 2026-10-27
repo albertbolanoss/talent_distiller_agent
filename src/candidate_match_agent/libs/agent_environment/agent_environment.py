@@ -38,17 +38,18 @@ def get_agent_environment(settings: Settings) -> AgentEnvironment:
         headers = f"x-portkey-api-key: {api_key.get_secret_value()}"
         if settings.portkey_virtual_key:
             headers += f"\nx-portkey-virtual-key: {settings.portkey_virtual_key}"
-        return AgentEnvironment(
-            env={
-                "ANTHROPIC_BASE_URL": base_url,
-                "ANTHROPIC_API_KEY": api_key.get_secret_value(),
-                "ANTHROPIC_CUSTOM_HEADERS": headers,
-            },
-        )
+        env = {
+            "ANTHROPIC_BASE_URL": base_url,
+            "ANTHROPIC_API_KEY": api_key.get_secret_value(),
+            "ANTHROPIC_CUSTOM_HEADERS": headers,
+        }
     else:
-        return AgentEnvironment(
-            env={
-                "ANTHROPIC_BASE_URL": base_url,
-                "ANTHROPIC_API_KEY": api_key.get_secret_value(),
-            },
-        )
+        env = {
+            "ANTHROPIC_BASE_URL": base_url,
+            "ANTHROPIC_API_KEY": api_key.get_secret_value(),
+        }
+
+    if settings.disable_prompt_caching:
+        env["DISABLE_PROMPT_CACHING"] = "1"
+
+    return AgentEnvironment(env=env)
