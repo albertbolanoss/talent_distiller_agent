@@ -1,0 +1,37 @@
+"""Tests for the Starlette app wiring the resume-upload API and the background poll loop."""
+
+import asyncio
+
+from starlette.testclient import TestClient
+
+import candidate_match_agent_cli.api.app as app_module
+
+
+def test_healthz_reports_ok():
+    with TestClient(app_module.create_app()) as client:
+        response = client.get("/healthz")
+
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok"}
+
+
+async def test_lifespan_starts_and_cancels_the_background_resume_processing_loop(monkeypatch):
+    started = []
+    cancelled = []
+
+    async def fake_process_resumes() -> None:
+        started.append(True)
+        try:
+            await asyncio.Event().wait()
+        except asyncio.CancelledError:
+            cancelled.append(True)
+            raise
+
+    monkeypatch.setattr(app_module, "process_resumes", fake_process_resumes)
+
+    with TestClient(app_module.create_app()) as client:
+        response = client.get("/healthz")
+        assert response.status_code == 200
+
+    assert started == [True]
+    assert cancelled == [True]

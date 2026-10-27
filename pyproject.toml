@@ -11,10 +11,13 @@ dependencies = [
     "anyio>=4.15.1",
     "claude-agent-sdk>=0.2.174",
     "labs-agent-lib",
+    "python-multipart>=0.0.32",
+    "starlette>=1.10.0",
+    "uvicorn>=0.54.0",
 ]
 
 [project.scripts]
-candidate-match-agent-cli = "candidate_match_agent_cli.main:main"
+candidate-match-agent-api = "candidate_match_agent_cli.api.main:main"
 
 [build-system]
 requires = ["uv_build>=0.12.2,<0.13.0"]
@@ -26,11 +29,13 @@ url = "https://test.pypi.org/simple/"
 explicit = true
 
 [tool.uv.sources]
-# labs-agent-lib = { path = "../labs-agent-lib" }  # local sibling repo, used before publishing to TestPyPI
-labs-agent-lib = { index = "testpypi" }
+# Using the local sibling repo while the portkey_virtual rename (0.2.0) isn't published to TestPyPI yet.
+labs-agent-lib = { path = "../labs-agent-lib" }
+# labs-agent-lib = { index = "testpypi" }
 
 [dependency-groups]
 dev = [
+    "httpx2>=2.16.0",
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.1",
     "pytest-cov>=7.1.0",
