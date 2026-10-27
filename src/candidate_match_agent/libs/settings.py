@@ -40,6 +40,10 @@ class Settings(BaseSettings):
     anthropic_base_url: str = "https://api.anthropic.com"
     anthropic_api_key: SecretStr = SecretStr("")
 
+    resume_dir: str = "resume"
+    resume_poll_interval_seconds: float = 300
+    resume_max_files_per_batch: int = 3
+
 
 @lru_cache
 def get_settings() -> Settings:
