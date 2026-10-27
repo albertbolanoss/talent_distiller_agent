@@ -35,11 +35,14 @@ def get_agent_environment(settings: Settings) -> AgentEnvironment:
         )
 
     if settings.provider is Provider.PORTKEY:
+        headers = f"x-portkey-api-key: {api_key.get_secret_value()}"
+        if settings.portkey_virtual_key:
+            headers += f"\nx-portkey-virtual-key: {settings.portkey_virtual_key}"
         return AgentEnvironment(
             env={
                 "ANTHROPIC_BASE_URL": base_url,
                 "ANTHROPIC_API_KEY": api_key.get_secret_value(),
-                "ANTHROPIC_CUSTOM_HEADERS": f"x-portkey-api-key: {api_key.get_secret_value()}",
+                "ANTHROPIC_CUSTOM_HEADERS": headers,
             },
         )
     else:

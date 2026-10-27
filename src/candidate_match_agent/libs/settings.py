@@ -35,6 +35,7 @@ class Settings(BaseSettings):
 
     portkey_base_url: str = "https://portkeygateway.perficient.com"
     portkey_api_key: SecretStr = SecretStr("")
+    portkey_virtual_key: str = ""
 
     anthropic_base_url: str = "https://api.anthropic.com"
     anthropic_api_key: SecretStr = SecretStr("")

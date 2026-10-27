@@ -12,7 +12,7 @@ import sys
 
 from candidate_match_agent.libs.settings import get_settings
 
-_ROOT_LOGGER_NAME = "labs_resume_agent"
+_ROOT_LOGGER_NAME = "candidate_match_agent"
 _configured = False
 
 
