@@ -20,8 +20,14 @@ candidate-match-agent-cli = "candidate_match_agent_cli.main:main"
 requires = ["uv_build>=0.12.2,<0.13.0"]
 build-backend = "uv_build"
 
+[[tool.uv.index]]
+name = "testpypi"
+url = "https://test.pypi.org/simple/"
+explicit = true
+
 [tool.uv.sources]
-labs-agent-lib = { path = "../labs-agent-lib" }
+# labs-agent-lib = { path = "../labs-agent-lib" }  # local sibling repo, used before publishing to TestPyPI
+labs-agent-lib = { index = "testpypi" }
 
 [dependency-groups]
 dev = [
