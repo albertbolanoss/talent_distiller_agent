@@ -1,6 +1,6 @@
 """Tests for the in-process file-reader MCP server."""
 
-from candidate_match_agent.tools import FILE_READER_SERVER, FILE_READER_SERVER_NAME
+from candidate_match_agent_cli.tools import FILE_READER_SERVER, FILE_READER_SERVER_NAME
 
 
 def test_server_name_matches_the_exported_constant():

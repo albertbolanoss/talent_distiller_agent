@@ -1,5 +1,5 @@
 [project]
-name = "candidate-match-agent"
+name = "candidate-match-agent-cli"
 version = "0.1.0"
 description = "This AI agent analyzes job postings against resumes to identify matching skills and rank candidates."
 readme = "README.md"
@@ -14,7 +14,7 @@ dependencies = [
 ]
 
 [project.scripts]
-candidate-match-agent = "candidate_match_agent.main:main"
+candidate-match-agent-cli = "candidate_match_agent_cli.main:main"
 
 [build-system]
 requires = ["uv_build>=0.12.2,<0.13.0"]
@@ -32,14 +32,14 @@ dev = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "--cov=candidate_match_agent --cov-report=term-missing"
+addopts = "--cov=candidate_match_agent_cli --cov-report=term-missing"
 asyncio_mode = "auto"
 
 [tool.coverage.run]
 branch = true
 omit = [
     # Manual dev entrypoint - edited and run by hand, not part of the tested application surface.
-    "src/candidate_match_agent/coordinators/main.py",
+    "src/candidate_match_agent_cli/coordinators/main.py",
 ]
 
 [tool.coverage.report]

@@ -2,8 +2,8 @@
 
 import pytest
 
-import candidate_match_agent.coordinators.coordinator as coordinator_module
-from candidate_match_agent.coordinators import run_coordinator
+import candidate_match_agent_cli.coordinators.coordinator as coordinator_module
+from candidate_match_agent_cli.coordinators import run_coordinator
 from labs_agent_lib.agent_environment.agent_environment import AgentEnvironment
 
 

@@ -1,7 +1,7 @@
 """Tests for the coordinator's system prompt."""
 
-from candidate_match_agent.prompts import DOCUMENT_READ_PROMPT
-from candidate_match_agent.prompts.document_read import DOCUMENT_READ_PROMPT as prompt_from_module
+from candidate_match_agent_cli.prompts import DOCUMENT_READ_PROMPT
+from candidate_match_agent_cli.prompts.document_read import DOCUMENT_READ_PROMPT as prompt_from_module
 
 
 def test_is_exported_from_the_package_root():

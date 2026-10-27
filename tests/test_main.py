@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-import candidate_match_agent.main as main_module
+import candidate_match_agent_cli.main as main_module
 from labs_agent_lib.settings import Settings
 
 

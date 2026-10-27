@@ -5,8 +5,8 @@ import sys
 from claude_agent_sdk import ClaudeAgentOptions, ClaudeSDKClient
 
 from labs_agent_lib import get_logger, get_settings, get_agent_environment
-from candidate_match_agent.tools import FILE_READER_SERVER, FILE_READER_SERVER_NAME
-from candidate_match_agent.prompts import DOCUMENT_READ_PROMPT
+from candidate_match_agent_cli.tools import FILE_READER_SERVER, FILE_READER_SERVER_NAME
+from candidate_match_agent_cli.prompts import DOCUMENT_READ_PROMPT
 
 from .message_stream_handler import process_coordinator_stream
 

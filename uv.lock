@@ -34,7 +34,7 @@ wheels = [
 ]
 
 [[package]]
-name = "candidate-match-agent"
+name = "candidate-match-agent-cli"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [

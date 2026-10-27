@@ -13,7 +13,7 @@ from claude_agent_sdk import (
     UserMessage,
 )
 
-from candidate_match_agent.coordinators.message_stream_handler import (
+from candidate_match_agent_cli.coordinators.message_stream_handler import (
     READ_DOCUMENT_TOOL_NAME,
     process_coordinator_stream,
 )

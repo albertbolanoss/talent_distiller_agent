@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from labs_agent_lib.file_reader.errors import UnsupportedFileTypeError
-from candidate_match_agent.tools.file_reader import read_document
+from candidate_match_agent_cli.tools.file_reader import read_document
 
 
 def test_name_and_description_advertise_the_supported_extensions():

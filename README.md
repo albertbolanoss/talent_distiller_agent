@@ -1,4 +1,4 @@
-# candidate-match-agent
+# candidate-match-agent-cli
 
 This AI agent analyzes job postings against resumes to identify matching skills and rank candidates.
 
@@ -20,8 +20,8 @@ pins a released version instead of the local checkout.
 1. Clone the repo (or download and unzip it):
 
    ```bash
-   git clone https://github.com/albertbolanoss/candidate-match-agent.git
-   cd candidate-match-agent
+   git clone https://github.com/albertbolanoss/candidate-match-agent-cli.git
+   cd candidate-match-agent-cli
    ```
 
 2. Sync the environment (installs the exact dependency versions pinned in `uv.lock`):
@@ -51,7 +51,7 @@ cp .env.example .env
 ## How to run this project
 
 ```bash
-uv run candidate-match-agent
+uv run candidate-match-agent-cli
 ```
 
 ## How to run the tests
@@ -62,10 +62,10 @@ Tests live under `tests/` and use `pytest` + `pytest-cov`. `uv sync` already ins
 uv run pytest
 ```
 
-This also prints a coverage report for `src/candidate_match_agent` (configured in `pyproject.toml`); a line is only "covered" if a test actually executes it, and `Missing` lists any line numbers that aren't.
+This also prints a coverage report for `src/candidate_match_agent_cli` (configured in `pyproject.toml`); a line is only "covered" if a test actually executes it, and `Missing` lists any line numbers that aren't.
 
 `labs-agent-lib` has its own repo, `pyproject.toml`, and test suite with a 100% coverage gate — see
 `../labs-agent-lib/README.md` and `../labs-agent-lib/PUBLISHING.md`.
 
 
-uv run python -m candidate_match_agent.coordinators "us.anthropic.claude-sonnet-5" "resume/Resume_Luis_Alberto_Bolanos_Salazar.docx.pdf"
+uv run python -m candidate_match_agent_cli.coordinators "us.anthropic.claude-sonnet-5" "resume/Resume_Luis_Alberto_Bolanos_Salazar.docx.pdf"
