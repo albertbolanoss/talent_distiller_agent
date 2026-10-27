@@ -1,7 +1,7 @@
-replicaCount: 3
+replicaCount: 1
 
 image:
-  repository: your-dockerhub-username/candidate-match-agent-cli
+  repository: luigisamurai/candidate-match-agent-cli
   tag: "0.1.0"
   pullPolicy: IfNotPresent
 
@@ -24,7 +24,7 @@ probes:
   path: /healthz
   initialDelaySeconds: 5
   periodSeconds: 10
-  timeoutSeconds: 3
+  timeoutSeconds: 300
   failureThreshold: 3
 
 resources:
@@ -51,7 +51,7 @@ config:
   # Portkey provider/credential alias (e.g. "aws-bedrock-use2") - an identifier, not a credential,
   # so it lives in the ConfigMap rather than the Secret below. Optional; leave empty if your
   # Portkey workspace doesn't route through a specific virtual key.
-  portkeyVirtual: ""
+  portkeyVirtual: "aws-bedrock-use2"
 
 # Placeholder credentials only - do NOT put real secrets here or commit real values.
 # Override at install time instead, e.g.:

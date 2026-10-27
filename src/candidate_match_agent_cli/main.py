@@ -12,7 +12,7 @@ from labs_agent_lib.file_reader import SUPPORTED_EXTENSIONS
 
 from .coordinators.coordinator import run_coordinator
 
-MODEL = "us.anthropic.claude-sonnet-5"
+MODEL = "us.anthropic.claude-haiku-4-5-20251001-v1:0"
 
 
 async def process_resumes() -> None:

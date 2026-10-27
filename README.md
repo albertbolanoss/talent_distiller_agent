@@ -104,8 +104,15 @@ The port defaults to `8080` and is read directly from the `PORT` env var (see `.
 ## Docker
 
 ```bash
+# Run container local
 docker build -t candidate-match-agent-cli:local .
 docker run --rm -p 8080:8080 --env-file .env candidate-match-agent-cli:local
+
+# Publish image
+docker build -t candidate-match-agent-cli:local .
+docker tag candidate-match-agent-cli:local luigisamurai/candidate-match-agent-cli:local
+docker push luigisamurai/candidate-match-agent-cli:local
+
 ```
 
 The image runs `candidate-match-agent-api` (the HTTP API + background loop) as its entrypoint.
@@ -116,18 +123,34 @@ The chart lives at `helm/candidate-match-agent-cli/` and installs a Deployment (
 default), a Service, a ConfigMap, and a Secret.
 
 ```bash
+# Start minikube
 minikube start
 
-# Build the image directly into minikube's Docker daemon so no registry push is needed.
-eval $(minikube docker-env)
-docker build -t candidate-match-agent-cli:local .
+# Start RancharDesktop without kubernetes (for docker in windows)
 
-helm install candidate-match-agent-cli ./helm/candidate-match-agent-cli \
-  --set image.repository=candidate-match-agent-cli \
-  --set image.tag=local
+# Install deployment
+helm install candidate-match-agent-cli ./helm/candidate-match-agent-cli
+helm upgrade candidate-match-agent-cli ./helm/candidate-match-agent-cli --set secrets.portkeyApiKey=""
 
 kubectl get pods -l app.kubernetes.io/instance=candidate-match-agent-cli
-minikube service candidate-match-agent-cli-candidate-match-agent-cli --url
+
+# Get service URL
+Opción 1 — minikube service (abre el navegador o te da la URL):
+minikube service candidate-match-agent-cli --url
+
+
+
+Opción 2 — acceso directo con el NodePort (32392):
+minikube ip
+y luego entra a http://<ip-de-minikube>:32392
+
+Opción 3 — port-forward (si prefieres localhost y un puerto fijo):
+kubectl port-forward svc/candidate-match-agent-cli 8080:80
+y accedes en http://localhost:8080
+
+# request
+curl -F "file=@input/Resume_Luis_Alberto_Bolanos_Salazar.docx.pdf" http://172.21.252.79:32190/resumes
+
 ```
 
 To use a real Docker Hub image instead, push with the `Dockerfile` in this repo and set
