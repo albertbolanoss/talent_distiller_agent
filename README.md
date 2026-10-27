@@ -4,7 +4,7 @@ This AI agent analyzes job postings against resumes to identify matching skills 
 
 ## Prerequisites.
 
-- [Python 3.14](https://www.python.org/downloads/) or [UV](https://docs.astral.sh/uv/getting-started/installation/)
+- [uv](https://docs.astral.sh/uv/getting-started/installation/)
 
 ## How to install dependencies
 
@@ -15,27 +15,11 @@ This AI agent analyzes job postings against resumes to identify matching skills 
    cd candidate-match-agent
    ```
 
-2. Install dependencies with one of these options:
+2. Sync the environment (installs the exact dependency versions pinned in `uv.lock`):
 
-   ### Option 1: uv (recommended)
-
-      Installs the exact dependency versions pinned in `uv.lock`.
-
-         ```bash
-         uv sync
-         ```
-
-   ### Option 2: pip (no uv required)
-
-      `pip` works too — it automatically fetches the build backend (`uv-build`). Note: this skips `uv.lock`, so dependency versions may differ slightly from uv's.
-
-         ```bash
-         python -m venv .venv
-         .venv\Scripts\activate      # Windows
-         source .venv/bin/activate   # macOS/Linux
-
-         pip install -e .
-         ```
+   ```bash
+   uv sync
+   ```
 
 ## Configuring the .env file
 
@@ -56,16 +40,16 @@ cp .env.example .env
 
 ## How to run this project
 
-### With uv
-
 ```bash
 uv run candidate-match-agent
 ```
 
-### With python
+## How to run the tests
 
-Activate the virtual environment first if it isn't active yet, then run:
+Tests live under `tests/` and use `pytest` + `pytest-cov`. `uv sync` already installs them as dev dependencies.
 
 ```bash
-candidate-match-agent
+uv run pytest
 ```
+
+This also prints a coverage report for `libs/file_reader` (configured in `pyproject.toml`); a line is only "covered" if a test actually executes it, and `Missing` lists any line numbers that aren't.

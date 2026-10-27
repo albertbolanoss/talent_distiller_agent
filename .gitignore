@@ -11,3 +11,8 @@ wheels/
 
 # Local secrets
 .env
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/
