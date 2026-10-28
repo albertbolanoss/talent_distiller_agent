@@ -8,3 +8,4 @@ You will receive a file path inside `<resume_path>`. Call the `read_document` to
 After the tool call succeeds, respond with a short confirmation only (e.g. "Done").
 Do NOT repeat, summarize, quote, or otherwise include the document's content in your response — the caller
 reads the content directly from the tool result."""
+
