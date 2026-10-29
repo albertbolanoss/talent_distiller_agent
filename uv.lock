@@ -60,7 +60,7 @@ dev = [
 requires-dist = [
     { name = "anyio", specifier = ">=4.15.1" },
     { name = "claude-agent-sdk", specifier = ">=0.2.174" },
-    { name = "labs-agent-lib", directory = "../labs-agent-lib" },
+    { name = "labs-agent-lib", specifier = ">=0.4.2", index = "https://test.pypi.org/simple/" },
     { name = "python-multipart", specifier = ">=0.0.32" },
     { name = "redis", specifier = ">=8.1.0" },
     { name = "starlette", specifier = ">=1.10.0" },
@@ -436,8 +436,8 @@ wheels = [
 
 [[package]]
 name = "labs-agent-lib"
-version = "0.4.1"
-source = { directory = "../labs-agent-lib" }
+version = "0.4.2"
+source = { registry = "https://test.pypi.org/simple/" }
 dependencies = [
     { name = "docx2txt" },
     { name = "pydantic" },
@@ -445,21 +445,9 @@ dependencies = [
     { name = "pymupdf" },
     { name = "python-dotenv" },
 ]
-
-[package.metadata]
-requires-dist = [
-    { name = "docx2txt", specifier = ">=0.9" },
-    { name = "pydantic", specifier = ">=2.14.1" },
-    { name = "pydantic-settings", specifier = ">=2.16.1" },
-    { name = "pymupdf", specifier = ">=2.0" },
-    { name = "python-dotenv", specifier = ">=1.2.4" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "pytest", specifier = ">=9.1.1" },
-    { name = "pytest-cov", specifier = ">=7.1.0" },
-    { name = "python-docx", specifier = ">=1.2.0" },
+sdist = { url = "https://test-files.pythonhosted.org/packages/7d/a8/050d526aa593a0fe1c6f47ab6b9a94acfa3220ce6634fe010d360adf3d18/labs_agent_lib-0.4.2.tar.gz", hash = "sha256:040b4d0143dcb36a8c27c44428e9bb9a7434d05ffe3502053e374c818d7cd222", size = 6284, upload-time = "2026-10-29T03:29:31.765Z" }
+wheels = [
+    { url = "https://test-files.pythonhosted.org/packages/93/b7/b2a375c085c407ce651c787a27748aef8e55032c0fc4fa0d243169566f31/labs_agent_lib-0.4.2-py3-none-any.whl", hash = "sha256:29d9b7c98856b6510309876ea5cc8aafbf6099202a613e1eb7ff64074fe4e9cc", size = 10758, upload-time = "2026-10-29T03:29:30.892Z" },
 ]
 
 [[package]]
