@@ -9,7 +9,7 @@ from starlette.testclient import TestClient
 
 import candidate_match_agent_cli.api.resumes as resumes_module
 from candidate_match_agent_cli.api.resumes import upload_resume
-from labs_agent_lib.settings import Settings
+from candidate_match_agent_cli.settings import Settings
 
 
 def _client(resume_dir: Path, monkeypatch: pytest.MonkeyPatch) -> TestClient:

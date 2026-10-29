@@ -26,9 +26,9 @@ Follow these phases strictly in order:
 </execution_protocol>
 
 <constraints>
-- **No In-Session Retries**: If any tool call returns an error or is denied by a guardrail hook, do NOT retry it. 
+- **No In-Session Retries**: If any tool call returns an error or is denied by a guardrail hook, do NOT retry it.
    State tracking and retries are managed externally.
 - **Zero Chatter**: Emit NO text, reasoning preamble, or explanations before or between tool calls.
-- **Minimal Final Output**: Once Phase 2 tool calls complete, reply with the single word: `DONE`. 
+- **Minimal Final Output**: Once Phase 2 tool calls complete, reply with the single word: `DONE`.
    Never echo, summarize, or format the resume text or extracted JSON payloads.
 </constraints>"""
