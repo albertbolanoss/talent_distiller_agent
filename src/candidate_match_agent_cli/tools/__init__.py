@@ -16,6 +16,19 @@ SOFT_SKILLS_SERVER_NAME = "soft-skills-agent"
 CERTS_SERVER_NAME = "certs-agent"
 LANG_SERVER_NAME = "lang-agent"
 
+READ_DOCUMENT_TOOL_NAME = "mcp__file-reader__read_document"
+
+# Map each distributed MCP tool name to its Redis Hash field name
+EXTRACTION_TOOL_TO_FIELD: dict[str, str] = {
+    "mcp__tech-skills-agent__extract_technical_skills": "technical_skills",
+    "mcp__soft-skills-agent__extract_soft_skills": "soft_skills",
+    "mcp__certs-agent__extract_certifications": "certifications",
+    "mcp__lang-agent__extract_languages": "languages",
+}
+
+
+
+
 FILE_READER_SERVER: McpSdkServerConfig = create_sdk_mcp_server(
     name=FILE_READER_SERVER_NAME,
     tools=[read_document],
@@ -52,4 +65,7 @@ __all__ = [
     "SOFT_SKILLS_SERVER",
     "CERTS_SERVER",
     "LANG_SERVER",
+    "READ_DOCUMENT_TOOL_NAME",
+    "EXTRACTION_TOOL_TO_FIELD",
+
 ]

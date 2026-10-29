@@ -1,11 +1,18 @@
 """Coordinator: delegates reading a resume and invoking 4 parallel MCP agents with Redis tracking."""
 
-import asyncio
 import sys
+from typing import Any
 
 from claude_agent_sdk import ClaudeAgentOptions, ClaudeSDKClient
+from labs_agent_lib import (
+    get_agent_environment,
+    get_agent_settings,
+    get_logger,
+)
 
-from labs_agent_lib import get_logger, get_settings, get_agent_environment
+from candidate_match_agent_cli.prompts import COORDINATOR_ORCHESTRATION_PROMPT
+from candidate_match_agent_cli.settings import get_settings
+from candidate_match_agent_cli.storage import RedisJobStore
 from candidate_match_agent_cli.tools import (
     CERTS_SERVER,
     CERTS_SERVER_NAME,
@@ -18,23 +25,12 @@ from candidate_match_agent_cli.tools import (
     TECH_SKILLS_SERVER,
     TECH_SKILLS_SERVER_NAME,
 )
-from candidate_match_agent_cli.prompts import COORDINATOR_ORCHESTRATION_PROMPT
 
-from .job_tracker import RedisJobTracker
-from .message_stream_handler import (
-    READ_DOCUMENT_TOOL_NAME,
-    process_coordinator_stream,
-)
+from candidate_match_agent_cli.guardrails import CoordinatorGuardrail
+from .message_stream_handler import process_coordinator_stream
 
 logger = get_logger(__name__)
 MODULE = "[Coordinator]"
-
-FIELD_TO_MCP_TOOL: dict[str, str] = {
-    "technical_skills": f"mcp__{TECH_SKILLS_SERVER_NAME}__extract_technical_skills",
-    "soft_skills": f"mcp__{SOFT_SKILLS_SERVER_NAME}__extract_soft_skills",
-    "certifications": f"mcp__{CERTS_SERVER_NAME}__extract_certifications",
-    "languages": f"mcp__{LANG_SERVER_NAME}__extract_languages",
-}
 
 ALL_MCP_SERVERS = {
     FILE_READER_SERVER_NAME: FILE_READER_SERVER,
@@ -45,32 +41,18 @@ ALL_MCP_SERVERS = {
 }
 
 
-async def run_coordinator(
-    model: str,
-    resume_path: str,
-    max_retries: int = 3,
-) -> dict:
+async def run_coordinator(resume_path: str) -> dict[str, Any]:
     """Reads `resume_path`, dispatches 4 parallel MCP agents, checkpoints to Redis, and unifies output."""
     settings = get_settings()
-    agent_env = get_agent_environment(settings)
+    agent_env = get_agent_environment(get_agent_settings())
 
-    tracker = RedisJobTracker()
+    async with RedisJobStore() as tracker:
+        guardrail = CoordinatorGuardrail(tracker=tracker, settings=settings)
 
-    try:
-        for attempt in range(1, max_retries + 1):
-            try:
-                needs_read, missing_fields, _ = await tracker.get_missing_requirements(resume_path)
+        try:
+            allowed_tools = await guardrail.pre_execution_hook(resume_path)
 
-                if not needs_read and not missing_fields:
-                    logger.info("%s All fields already checkpointed in Redis for %s", MODULE, resume_path)
-                    break
-
-                allowed_tools: list[str] = []
-                if needs_read:
-                    allowed_tools.append(READ_DOCUMENT_TOOL_NAME)
-                for field in missing_fields:
-                    allowed_tools.append(FIELD_TO_MCP_TOOL[field])
-
+            if allowed_tools:
                 prompt = (
                     f"<resume_path>{resume_path}</resume_path>\n"
                     f"<pending_tools>{', '.join(allowed_tools)}</pending_tools>"
@@ -78,16 +60,19 @@ async def run_coordinator(
 
                 options = ClaudeAgentOptions(
                     system_prompt=COORDINATOR_ORCHESTRATION_PROMPT,
-                    model=model,
+                    model=settings.coordinator_model,
                     env=agent_env.env,
                     setting_sources=[],
                     mcp_servers=ALL_MCP_SERVERS,
                     allowed_tools=allowed_tools,
+                    hooks=guardrail.build_sdk_hooks(resume_path),
                 )
 
                 logger.info(
-                    "%s Attempt %d/%d | resume_path=%s | allowed_tools=%s",
-                    MODULE, attempt, max_retries, resume_path, allowed_tools,
+                    "%s resume_path=%s | allowed_tools=%s",
+                    MODULE,
+                    resume_path,
+                    allowed_tools,
                 )
 
                 async with ClaudeSDKClient(options=options) as client:
@@ -98,26 +83,15 @@ async def run_coordinator(
                         resume_path=resume_path,
                     )
 
-                status, still_missing = await tracker.update_session_and_status(resume_path, session_id)
-                logger.info(
-                    "%s Attempt %d finished | stop_reason=%s | status=%s | session_id=%s | still_missing=%s",
-                    MODULE, attempt, stop_reason, status, session_id, still_missing,
+                await guardrail.post_execution_hook(
+                    resume_path=resume_path,
+                    session_id=session_id,
+                    stop_reason=stop_reason,
                 )
 
-                if status == "COMPLETED":
-                    break
-
-            except Exception as exc:
-                logger.exception("%s Error on attempt %d/%d: %s", MODULE, attempt, max_retries, exc)
-
-            if attempt < max_retries:
-                backoff = 2 ** (attempt - 1)
-                logger.info("%s Retrying missing agents in %ds...", MODULE, backoff)
-                await asyncio.sleep(backoff)
+        except Exception as exc:
+            logger.exception("%s Error processing %s: %s", MODULE, resume_path, exc)
 
         unified_result = await tracker.unify_by_filename(resume_path)
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
         return unified_result.model_dump()
-
-    finally:
-        await tracker.close()
