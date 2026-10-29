@@ -10,7 +10,7 @@ requires-python = ">=3.14"
 dependencies = [
     "anyio>=4.15.1",
     "claude-agent-sdk>=0.2.174",
-    "labs-agent-lib>=0.4.1",
+    "labs-agent-lib>=0.4.2",
     "python-multipart>=0.0.32",
     "redis>=8.1.0",
     "starlette>=1.10.0",
@@ -30,8 +30,8 @@ url = "https://test.pypi.org/simple/"
 explicit = true
 
 [tool.uv.sources]
-labs-agent-lib = { path = "../labs-agent-lib" }
-# labs-agent-lib = { index = "testpypi" }
+# labs-agent-lib = { path = "../labs-agent-lib" }
+labs-agent-lib = { index = "testpypi" }
 
 [dependency-groups]
 dev = [
