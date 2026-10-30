@@ -19,7 +19,7 @@ async def test_lifespan_starts_and_cancels_the_background_resume_processing_loop
     started = []
     cancelled = []
 
-    async def fake_process_resumes() -> None:
+    async def fake_start_process() -> None:
         started.append(True)
         try:
             await asyncio.Event().wait()
@@ -27,7 +27,7 @@ async def test_lifespan_starts_and_cancels_the_background_resume_processing_loop
             cancelled.append(True)
             raise
 
-    monkeypatch.setattr(app_module, "process_resumes", fake_process_resumes)
+    monkeypatch.setattr(app_module, "start_process", fake_start_process)
 
     with TestClient(app_module.create_app()) as client:
         response = client.get("/healthz")

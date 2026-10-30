@@ -1,26 +1,75 @@
-"""Tests for the Redis-backed resume-extraction job store."""
+"""Tests for the Redis-backed resume/job-posting extraction job store."""
 
 import fakeredis
 import pytest
 from fakeredis import aioredis as fake_redis
 
 from candidate_match_agent_cli.storage.redis_job_store import (
+    DESIRABLE_PREFIX,
+    DocumentType,
     RedisJobStore,
     RedisSettings,
+    UnifiedJobPostingJob,
     UnifiedResumeJob,
     get_redis_settings,
 )
 
 RESUME_PATH = "resume/Jane Doe.pdf"
+JOB_POSTING_PATH = "job_posting/Backend Engineer.pdf"
 
 
-def _store() -> RedisJobStore:
+def _store(doc_type: DocumentType = DocumentType.RESUME) -> RedisJobStore:
     server = fakeredis.FakeServer()
-    return RedisJobStore(client=fake_redis.FakeRedis(server=server, decode_responses=True))
+    return RedisJobStore(
+        doc_type=doc_type, client=fake_redis.FakeRedis(server=server, decode_responses=True)
+    )
 
 
-def test_get_job_key_normalizes_the_file_name():
-    assert RedisJobStore.get_job_key("Resume/Folder/Jane Doe.PDF ") == "resume_job:jane doe.pdf"
+def test_get_job_key_normalizes_the_file_name_for_a_resume():
+    store = _store()
+    assert store.get_job_key("Resume/Folder/Jane Doe.PDF ") == "resume_job:jane doe.pdf"
+
+
+def test_get_job_key_uses_the_job_posting_prefix():
+    store = _store(DocumentType.JOB_POSTING)
+    assert store.get_job_key("Job Posting/Backend Engineer.PDF") == "job_posting:backend engineer.pdf"
+
+
+def test_extraction_fields_are_mandatory_only_for_a_resume():
+    store = _store()
+    assert store.extraction_fields == (
+        "technical_skills",
+        "soft_skills",
+        "certifications",
+        "languages",
+    )
+
+
+def test_extraction_fields_include_desirable_fields_for_a_job_posting():
+    store = _store(DocumentType.JOB_POSTING)
+    assert store.extraction_fields == (
+        "technical_skills",
+        "soft_skills",
+        "certifications",
+        "languages",
+        "desirable_technical_skills",
+        "desirable_soft_skills",
+        "desirable_certifications",
+        "desirable_languages",
+    )
+
+
+def test_get_target_fields_for_base_field_returns_only_the_base_field_for_a_resume():
+    store = _store()
+    assert store.get_target_fields_for_base_field("languages") == ("languages",)
+
+
+def test_get_target_fields_for_base_field_includes_the_desirable_field_for_a_job_posting():
+    store = _store(DocumentType.JOB_POSTING)
+    assert store.get_target_fields_for_base_field("languages") == (
+        "languages",
+        f"{DESIRABLE_PREFIX}languages",
+    )
 
 
 async def test_init_or_get_state_creates_a_new_job_on_first_call():
@@ -101,7 +150,7 @@ async def test_increment_attempts_counts_up_atomically_per_job():
 async def test_get_status_reports_completed_when_content_and_all_fields_present():
     store = _store()
     await store.save_content(RESUME_PATH, "text")
-    for field in RedisJobStore.EXTRACTION_FIELDS:
+    for field in store.extraction_fields:
         await store.save_agent_result(RESUME_PATH, field, "{}")
 
     status = await store.get_status(RESUME_PATH)
@@ -119,7 +168,24 @@ async def test_get_status_reports_incomplete_when_fields_are_missing():
 
     assert status.is_completed is False
     assert status.has_content is True
-    assert status.missing_fields == list(RedisJobStore.EXTRACTION_FIELDS)
+    assert status.missing_fields == list(store.extraction_fields)
+
+
+async def test_get_status_reports_incomplete_for_a_job_posting_missing_only_desirable_fields():
+    store = _store(DocumentType.JOB_POSTING)
+    await store.save_content(JOB_POSTING_PATH, "text")
+    for field in ("technical_skills", "soft_skills", "certifications", "languages"):
+        await store.save_agent_result(JOB_POSTING_PATH, field, "{}")
+
+    status = await store.get_status(JOB_POSTING_PATH)
+
+    assert status.is_completed is False
+    assert status.missing_fields == [
+        "desirable_technical_skills",
+        "desirable_soft_skills",
+        "desirable_certifications",
+        "desirable_languages",
+    ]
 
 
 async def test_save_session_and_completion_persists_the_flag_and_session_id():
@@ -148,7 +214,7 @@ async def test_get_status_reports_has_content_false_for_a_brand_new_job():
     status = await store.get_status(RESUME_PATH)
 
     assert status.has_content is False
-    assert status.missing_fields == list(RedisJobStore.EXTRACTION_FIELDS)
+    assert status.missing_fields == list(store.extraction_fields)
 
 
 async def test_get_status_reports_has_content_true_once_content_is_saved():
@@ -159,7 +225,7 @@ async def test_get_status_reports_has_content_true_once_content_is_saved():
     status = await store.get_status(RESUME_PATH)
 
     assert status.has_content is True
-    assert status.missing_fields == list(RedisJobStore.EXTRACTION_FIELDS)
+    assert status.missing_fields == list(store.extraction_fields)
 
 
 async def test_unify_by_filename_raises_when_no_job_exists():
@@ -189,6 +255,32 @@ async def test_unify_by_filename_combines_content_fields_and_errors():
         certifications=None,
         languages=None,
         errors={"languages": "timeout"},
+    )
+
+
+async def test_unify_by_filename_returns_a_unified_job_posting_job_with_desirable_fields():
+    store = _store(DocumentType.JOB_POSTING)
+    await store.save_content(JOB_POSTING_PATH, "raw text")
+    await store.save_agent_result(JOB_POSTING_PATH, "technical_skills", '{"skills": ["python"]}')
+    await store.save_agent_result(
+        JOB_POSTING_PATH, "desirable_technical_skills", '{"skills": ["rust"]}'
+    )
+
+    job = await store.unify_by_filename(JOB_POSTING_PATH)
+
+    assert isinstance(job, UnifiedJobPostingJob)
+    assert job == UnifiedJobPostingJob(
+        file_name="Backend Engineer.pdf",
+        resume_path=JOB_POSTING_PATH,
+        content="raw text",
+        technical_skills={"skills": ["python"]},
+        soft_skills=None,
+        certifications=None,
+        languages=None,
+        desirable_technical_skills={"skills": ["rust"]},
+        desirable_soft_skills=None,
+        desirable_certifications=None,
+        desirable_languages=None,
     )
 
 
