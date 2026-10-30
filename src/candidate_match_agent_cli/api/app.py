@@ -14,7 +14,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.routing import Route
 
-from ..main import process_resumes
+from ..main import start_process
 from .resumes import upload_resume
 
 
@@ -26,7 +26,7 @@ async def health(_request: Request) -> JSONResponse:
 @asynccontextmanager
 async def lifespan(_app: Starlette) -> AsyncIterator[None]:
     """Runs the resume-processing poll loop for the lifetime of the app."""
-    task = asyncio.create_task(process_resumes())
+    task = asyncio.create_task(start_process())
     try:
         yield
     finally:

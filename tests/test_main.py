@@ -48,7 +48,7 @@ async def test_processes_every_supported_file_in_creation_order(
     monkeypatch.setattr(main_module, "get_creation_time", lambda path: creation_times[path.name])
 
     with pytest.raises(_StopLoop):
-        await main_module.process_resumes()
+        await main_module.start_process()
 
     assert [Path(p).name for p in processed] == ["b.md", "c.txt", "a.pdf"]
 
@@ -72,7 +72,7 @@ async def test_limits_each_batch_to_resume_max_files_per_batch(
     monkeypatch.setattr(main_module.asyncio, "sleep", fake_sleep)
 
     with pytest.raises(_StopLoop):
-        await main_module.process_resumes()
+        await main_module.start_process()
 
     assert len(processed) == 2
 
@@ -96,7 +96,7 @@ async def test_sleeps_for_the_configured_poll_interval_between_batches(
     monkeypatch.setattr(main_module.asyncio, "sleep", fake_sleep)
 
     with pytest.raises(_StopLoop):
-        await main_module.process_resumes()
+        await main_module.start_process()
 
     assert sleep_calls == [7]
 
@@ -132,7 +132,7 @@ async def test_logs_and_continues_when_a_coordinator_run_raises(
 
     with caplog.at_level("ERROR"):
         with pytest.raises(_StopLoop):
-            await main_module.process_resumes()
+            await main_module.start_process()
 
     assert "Failed to process" in caplog.text
 
@@ -150,6 +150,6 @@ async def test_logs_and_continues_when_a_poll_loop_iteration_fails(
 
     with caplog.at_level("ERROR"):
         with pytest.raises(_StopLoop):
-            await main_module.process_resumes()
+            await main_module.start_process()
 
     assert "Poll loop iteration failed" in caplog.text
