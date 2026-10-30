@@ -1,5 +1,6 @@
-"""Consumes a coordinator turn's message stream and checkpoints each MCP tool result to Redis."""
+"""Consumes a coordinator turn's message stream and checkpoints structured content and MCP tool results to Redis."""
 
+import re
 from typing import Any
 
 from claude_agent_sdk import (
@@ -13,14 +14,16 @@ from claude_agent_sdk import (
 )
 from labs_agent_lib import get_logger
 
+from candidate_match_agent_cli.mcp_client import EXTRACTION_TOOL_TO_FIELD
 from candidate_match_agent_cli.storage import JobRedisField, RedisJobStore
-from candidate_match_agent_cli.tools import (
-    EXTRACTION_TOOL_TO_FIELD,
-    READ_DOCUMENT_TOOL_NAME,
-)
 
 logger = get_logger(__name__)
 MODULE = "[message_stream_handler]"
+
+_FORMATTED_RESUME_PATTERN = re.compile(
+    r"<formatted_resume>(.*?)</formatted_resume>",
+    re.DOTALL,
+)
 
 
 def _extract_text(content: str | list[dict[str, Any]] | None) -> str:
@@ -32,12 +35,18 @@ def _extract_text(content: str | list[dict[str, Any]] | None) -> str:
     return "".join(block.get("text", "") for block in content if block.get("type") == "text")
 
 
+def _extract_formatted_resume(text: str) -> str | None:
+    """Extracts the structured resume inside `<formatted_resume>` tags if present."""
+    match = _FORMATTED_RESUME_PATTERN.search(text)
+    return match.group(1).strip() if match else None
+
+
 async def process_coordinator_stream(
     client: ClaudeSDKClient,
     tracker: RedisJobStore,
     resume_path: str,
 ) -> tuple[str | None, str | None]:
-    """Drains `client.receive_response()`, persisting each tool result in Redis immediately.
+    """Drains `client.receive_response()`, persisting formatted resume content and each tool result in Redis.
 
     Returns `(stop_reason, session_id)`.
     """
@@ -50,6 +59,22 @@ async def process_coordinator_stream(
             for block in message.content:
                 if isinstance(block, TextBlock):
                     logger.debug("%s Assistant text: %s", MODULE, block.text)
+                    formatted_resume = _extract_formatted_resume(block.text)
+                    if formatted_resume is not None:
+                        if formatted_resume:
+                            await tracker.save_content(resume_path, formatted_resume)
+                            logger.info(
+                                "%s Saved formatted resume content to Redis for path=%s",
+                                MODULE,
+                                resume_path,
+                            )
+                        else:
+                            await tracker.save_agent_error(
+                                resume_path,
+                                JobRedisField.CONTENT,
+                                "Coordinator returned an empty <formatted_resume> block.",
+                            )
+
                 elif isinstance(block, ToolUseBlock):
                     tool_names_by_id[block.id] = block.name
                     logger.info(
@@ -76,28 +101,13 @@ async def process_coordinator_stream(
                         tool_name,
                         extracted_text,
                     )
-                    if tool_name == READ_DOCUMENT_TOOL_NAME:
-                        await tracker.save_agent_error(
-                            resume_path, JobRedisField.CONTENT, extracted_text
-                        )
-                    elif tool_name in EXTRACTION_TOOL_TO_FIELD:
+                    if tool_name in EXTRACTION_TOOL_TO_FIELD:
                         field = EXTRACTION_TOOL_TO_FIELD[tool_name]
                         await tracker.save_agent_error(resume_path, field, extracted_text)
                     continue
 
-                # 1. Checkpoint Document Read
-                if tool_name == READ_DOCUMENT_TOOL_NAME:
-                    if extracted_text.strip():
-                        await tracker.save_content(resume_path, extracted_text)
-                    else:
-                        await tracker.save_agent_error(
-                            resume_path,
-                            JobRedisField.CONTENT,
-                            "Document reader returned empty content.",
-                        )
-
-                # 2. Checkpoint any of the 4 Parallel Extraction Agents immediately
-                elif tool_name in EXTRACTION_TOOL_TO_FIELD:
+                # Checkpoint any of the Parallel Extraction Agents immediately
+                if tool_name in EXTRACTION_TOOL_TO_FIELD:
                     field = EXTRACTION_TOOL_TO_FIELD[tool_name]
                     await tracker.save_agent_result(resume_path, field, extracted_text)
 

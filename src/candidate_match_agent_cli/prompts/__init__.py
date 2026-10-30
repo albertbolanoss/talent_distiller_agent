@@ -1,7 +1,7 @@
-from .document_read import DOCUMENT_READ_PROMPT
-from .coordinator_orchestration import COORDINATOR_ORCHESTRATION_PROMPT
+from .resume_orchestration import RESUME_COORDINATOR_ORCHESTRATION_PROMPT
+from .job_posting_orchestration import JOB_POSTING_ORCHESTRATION_PROMPT
 
 __all__ = [
-    "DOCUMENT_READ_PROMPT",
-    "COORDINATOR_ORCHESTRATION_PROMPT"
+    "RESUME_COORDINATOR_ORCHESTRATION_PROMPT",
+    "JOB_POSTING_ORCHESTRATION_PROMPT",
 ]

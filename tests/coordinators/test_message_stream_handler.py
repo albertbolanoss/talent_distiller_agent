@@ -135,7 +135,7 @@ async def test_captures_an_errored_extraction_tool_result_as_an_agent_error():
             content=[
                 ToolUseBlock(
                     id="tech-1",
-                    name="mcp__tech-skills-agent__extract_technical_skills",
+                    name="mcp__candidate-skill-agent__extract_technical_skills",
                     input={},
                 )
             ],
@@ -206,7 +206,7 @@ async def test_checkpoints_an_extraction_agent_result_under_its_redis_field():
             content=[
                 ToolUseBlock(
                     id="soft-1",
-                    name="mcp__soft-skills-agent__extract_soft_skills",
+                    name="mcp__candidate-skill-agent__extract_soft_skills",
                     input={},
                 )
             ],

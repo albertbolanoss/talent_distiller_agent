@@ -15,6 +15,8 @@ class Settings(BaseSettings):
     resume_poll_interval_seconds: float = 300
     resume_max_files_per_batch: int = 3
 
+    skill_agent_mcp_url: str = "http://127.0.0.1:8000/mcp"
+
     coordinator_model: str = "us.anthropic.claude-haiku-4-5-20251001-v1:0"
     coordinator_processed_folder: str = f"{resume_dir}/processed"
     coordinator_failed_folder: str = f"{resume_dir}/failed"

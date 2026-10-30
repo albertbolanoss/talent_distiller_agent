@@ -48,6 +48,10 @@ config:
   resumePollIntervalSeconds: "300"
   resumeMaxFilesPerBatch: "3"
   disablePromptCaching: "false"
+  # URL of the candidate-skill-agent MCP server (streamable HTTP transport, must end in /mcp).
+  # Point this at the in-cluster Service exposing that server, e.g.
+  # "http://candidate-skill-agent:8000/mcp".
+  skillAgentMcpUrl: "http://127.0.0.1:8000/mcp"
   # Portkey provider/credential alias (e.g. "aws-bedrock-use2") - an identifier, not a credential,
   # so it lives in the ConfigMap rather than the Secret below. Optional; leave empty if your
   # Portkey workspace doesn't route through a specific virtual key.

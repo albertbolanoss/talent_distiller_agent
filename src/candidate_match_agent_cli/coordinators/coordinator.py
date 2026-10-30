@@ -1,44 +1,29 @@
-"""Coordinator: delegates reading a resume and invoking 4 parallel MCP agents with Redis tracking."""
+"""Coordinator: reads a resume locally, structures it, and invokes 4 parallel MCP agents with Redis tracking."""
 
 import sys
 from typing import Any
 
 from claude_agent_sdk import ClaudeAgentOptions, ClaudeSDKClient
 from labs_agent_lib import (
+    extract_text,
     get_agent_environment,
     get_agent_settings,
     get_logger,
 )
 
-from candidate_match_agent_cli.prompts import COORDINATOR_ORCHESTRATION_PROMPT
-from candidate_match_agent_cli.settings import get_settings
-from candidate_match_agent_cli.storage import RedisJobStore
-from candidate_match_agent_cli.tools import (
-    CERTS_SERVER,
-    CERTS_SERVER_NAME,
-    FILE_READER_SERVER,
-    FILE_READER_SERVER_NAME,
-    LANG_SERVER,
-    LANG_SERVER_NAME,
-    SOFT_SKILLS_SERVER,
-    SOFT_SKILLS_SERVER_NAME,
-    TECH_SKILLS_SERVER,
-    TECH_SKILLS_SERVER_NAME,
-)
-
 from candidate_match_agent_cli.guardrails import CoordinatorGuardrail
+from candidate_match_agent_cli.mcp_client import (
+    SKILL_AGENT_SERVER_NAME,
+    get_skill_agent_mcp_server,
+)
+from candidate_match_agent_cli.prompts import RESUME_COORDINATOR_ORCHESTRATION_PROMPT
+from candidate_match_agent_cli.settings import get_settings
+from candidate_match_agent_cli.storage import JobRedisField, RedisJobStore
+
 from .message_stream_handler import process_coordinator_stream
 
 logger = get_logger(__name__)
 MODULE = "[Coordinator]"
-
-ALL_MCP_SERVERS = {
-    FILE_READER_SERVER_NAME: FILE_READER_SERVER,
-    TECH_SKILLS_SERVER_NAME: TECH_SKILLS_SERVER,
-    SOFT_SKILLS_SERVER_NAME: SOFT_SKILLS_SERVER,
-    CERTS_SERVER_NAME: CERTS_SERVER,
-    LANG_SERVER_NAME: LANG_SERVER,
-}
 
 
 async def run_coordinator(resume_path: str) -> dict[str, Any]:
@@ -53,25 +38,38 @@ async def run_coordinator(resume_path: str) -> dict[str, Any]:
             allowed_tools = await guardrail.pre_execution_hook(resume_path)
 
             if allowed_tools:
-                prompt = (
-                    f"<resume_path>{resume_path}</resume_path>\n"
-                    f"<pending_tools>{', '.join(allowed_tools)}</pending_tools>"
-                )
+                status = await tracker.get_status(resume_path)
+                prompt_parts = [f"<resume_path>{resume_path}</resume_path>"]
+
+                if not status.has_content:
+                    raw_text = extract_text(resume_path)
+                    if not raw_text or not raw_text.strip():
+                        await tracker.save_agent_error(
+                            resume_path,
+                            JobRedisField.CONTENT,
+                            "extract_text returned empty content.",
+                        )
+                        raise ValueError(f"Empty text extracted from {resume_path}")
+                    prompt_parts.append(f"<resume_content>\n{raw_text}\n</resume_content>")
+
+                prompt_parts.append(f"<pending_tools>{', '.join(allowed_tools)}</pending_tools>")
+                prompt = "\n".join(prompt_parts)
 
                 options = ClaudeAgentOptions(
-                    system_prompt=COORDINATOR_ORCHESTRATION_PROMPT,
+                    system_prompt=RESUME_COORDINATOR_ORCHESTRATION_PROMPT,
                     model=settings.coordinator_model,
                     env=agent_env.env,
                     setting_sources=[],
-                    mcp_servers=ALL_MCP_SERVERS,
+                    mcp_servers={SKILL_AGENT_SERVER_NAME: get_skill_agent_mcp_server(settings)},
                     allowed_tools=allowed_tools,
                     hooks=guardrail.build_sdk_hooks(resume_path),
                 )
 
                 logger.info(
-                    "%s resume_path=%s | allowed_tools=%s",
+                    "%s resume_path=%s | has_content=%s | allowed_tools=%s",
                     MODULE,
                     resume_path,
+                    status.has_content,
                     allowed_tools,
                 )
 

@@ -1,15 +1,14 @@
 """Guardrails and SDK hooks for validating coordinator state and tool execution."""
 
+import asyncio
+
 from claude_agent_sdk import HookMatcher
 from claude_agent_sdk.types import HookContext, HookInput, HookJSONOutput
 from labs_agent_lib import file_writer, get_logger
 
+from candidate_match_agent_cli.mcp_client import EXTRACTION_TOOL_TO_FIELD
 from candidate_match_agent_cli.settings import Settings
 from candidate_match_agent_cli.storage import RedisJobStore
-from candidate_match_agent_cli.tools import (
-    EXTRACTION_TOOL_TO_FIELD,
-    READ_DOCUMENT_TOOL_NAME,
-)
 
 logger = get_logger(__name__)
 MODULE = "[CoordinatorGuardrail]"
@@ -54,12 +53,7 @@ class CoordinatorGuardrail:
             file_writer(resume_path, self.settings.coordinator_failed_folder)
             return []
 
-        allowed_tools: list[str] = []
-        if not status.has_content:
-            allowed_tools.append(READ_DOCUMENT_TOOL_NAME)
-        allowed_tools.extend(FIELD_TO_MCP_TOOL[field] for field in status.missing_fields)
-
-        return allowed_tools
+        return [FIELD_TO_MCP_TOOL[field] for field in status.missing_fields]
 
     async def post_execution_hook(
         self,
@@ -113,13 +107,22 @@ class CoordinatorGuardrail:
         ) -> HookJSONOutput:
             tool_name = str(input_data.get("tool_name", ""))
             target_field = EXTRACTION_TOOL_TO_FIELD[tool_name]
-            
+
             status = await self.tracker.get_status(resume_path)
+
+            # Allow brief window for AssistantMessage TextBlock (<formatted_resume>) to persist to Redis
+            if not status.has_content:
+                for _ in range(5):
+                    await asyncio.sleep(0.1)
+                    status = await self.tracker.get_status(resume_path)
+                    if status.has_content:
+                        break
 
             if not status.has_content:
                 reason = (
                     f"Cannot execute {tool_name}: resume content is not in Redis yet. "
-                    f"Execute {READ_DOCUMENT_TOOL_NAME} first."
+                    "You must emit the structured resume inside <formatted_resume>...</formatted_resume> "
+                    "before invoking any extraction tools."
                 )
                 logger.warning("%s Guardrail blocked %s: %s", MODULE, tool_name, reason)
                 return {
@@ -143,14 +146,13 @@ class CoordinatorGuardrail:
 
             return {}
 
-        # explicitly filter so that the hook applies only to extraction agents
         target_tools = "|".join(EXTRACTION_TOOL_TO_FIELD.keys())
 
         return {
             "PreToolUse": [
                 HookMatcher(
                     matcher=target_tools,
-                    hooks=[_validate_tool_use]
+                    hooks=[_validate_tool_use],
                 )
             ],
         }

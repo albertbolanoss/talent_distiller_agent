@@ -11,6 +11,12 @@ parent folder).
 Once `labs-agent-lib` is published to PyPI, the path override in `[tool.uv.sources]` can be dropped so `uv.lock`
 pins a released version instead of the local checkout.
 
+The 5 resume-extraction tools (`read_document`, `extract_technical_skills`, `extract_soft_skills`,
+`extract_certifications`, `extract_languages`) are **not** implemented in this repo. They're served by the
+sibling [`candidate-skill-agent`](https://github.com/albertbolanoss/candidate-skill-agent) MCP server, which the
+coordinator connects to as a remote streamable-HTTP MCP client — see
+[Connecting to the candidate-skill-agent MCP server](#connecting-to-the-candidate-skill-agent-mcp-server) below.
+
 ## Prerequisites.
 
 - [uv](https://docs.astral.sh/uv/getting-started/installation/)
@@ -44,6 +50,7 @@ cp .env.example .env
 | `CANDIDATE_MATCH_AGENT_LOG_LEVEL` | Log verbosity: `DEBUG`, `INFO` (default), `WARNING`, or `ERROR`. |
 | `CANDIDATE_MATCH_AGENT_PORTKEY_API_KEY` | Portkey workspace key. Required when `PROVIDER=portkey`. Ask your AI Academy facilitator for one. |
 | `CANDIDATE_MATCH_AGENT_ANTHROPIC_API_KEY` | Direct Anthropic API key. Required only when `PROVIDER=anthropic`. |
+| `CANDIDATE_MATCH_AGENT_SKILL_AGENT_MCP_URL` | URL of the `candidate-skill-agent` MCP server (streamable HTTP, must end in `/mcp`). Defaults to `http://127.0.0.1:8000/mcp`. |
 
 `.env` is gitignored — never commit it. Not in `.env.example` because it's not required, but if your Portkey
 workspace routes through a specific provider/credential alias, set it locally with:
@@ -54,6 +61,25 @@ CANDIDATE_MATCH_AGENT_PORTKEY_VIRTUAL=aws-bedrock-use2
 
 (It's not a secret — just an identifier — so it's read as a plain setting, not through the Secret in the
 Helm chart.)
+
+## Connecting to the candidate-skill-agent MCP server
+
+The coordinator (`candidate_match_agent_cli.coordinators.coordinator`) talks to the 5 resume-extraction tools over
+a **streamable HTTP MCP client** (see `src/candidate_match_agent_cli/mcp_client/skill_agent.py`), pointed at the
+URL in `CANDIDATE_MATCH_AGENT_SKILL_AGENT_MCP_URL` (defaults to `http://127.0.0.1:8000/mcp`). That server lives in
+the sibling `candidate-skill-agent` repo and must be running before you start this project's coordinator/API.
+
+1. Clone `candidate-skill-agent` as a sibling of this repo (same parent folder) and `uv sync` it.
+2. Start it over the `http` transport, on the host/port matching your `.env`:
+
+   ```bash
+   uv run python -m candidate_skill_agent.main --protocol http --host 127.0.0.1 --port 8000
+   ```
+
+3. Run this project as usual (see below) - the coordinator will connect to
+   `http://127.0.0.1:8000/mcp` on its next resume-processing turn.
+
+See that repo's `SETUP.md` for other transports (`stdio`, `sse`) and debugging with the MCP Inspector.
 
 ## How to run this project
 

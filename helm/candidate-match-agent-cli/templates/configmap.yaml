@@ -12,3 +12,4 @@ data:
   CANDIDATE_MATCH_AGENT_RESUME_MAX_FILES_PER_BATCH: {{ .Values.config.resumeMaxFilesPerBatch | quote }}
   CANDIDATE_MATCH_AGENT_DISABLE_PROMPT_CACHING: {{ .Values.config.disablePromptCaching | quote }}
   CANDIDATE_MATCH_AGENT_PORTKEY_VIRTUAL: {{ .Values.config.portkeyVirtual | quote }}
+  CANDIDATE_MATCH_AGENT_SKILL_AGENT_MCP_URL: {{ .Values.config.skillAgentMcpUrl | quote }}
