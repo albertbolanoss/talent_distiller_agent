@@ -109,6 +109,7 @@ async def run_coordinator(
                     setting_sources=[],
                     mcp_servers={SKILL_AGENT_SERVER_NAME: get_skill_agent_mcp_server(settings)},
                     allowed_tools=allowed_tools,
+                    tools=[],
                     hooks=guardrail.build_sdk_hooks(
                         file_path,
                         formatted_tag=spec.formatted_tag,
