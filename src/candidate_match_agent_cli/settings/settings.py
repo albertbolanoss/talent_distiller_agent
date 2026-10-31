@@ -1,5 +1,5 @@
 from functools import lru_cache
-from pydantic import model_validator
+from pydantic import model_validator, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -30,6 +30,11 @@ class Settings(BaseSettings):
     skill_agent_mcp_url: str = "http://127.0.0.1:8000/mcp"
     coordinator_model: str = "us.anthropic.claude-haiku-4-5-20251001-v1:0"
     coordinator_max_revision_number: int = 3
+
+    # Redis 
+    redis_host: str = "localhost"
+    redis_password: SecretStr = SecretStr("")
+    redis_db: int = 0
 
     @model_validator(mode="after")
     def _resolve_default_folders(self) -> "Settings":

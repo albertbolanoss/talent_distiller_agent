@@ -4,14 +4,13 @@ import fakeredis
 import pytest
 from fakeredis import aioredis as fake_redis
 
+from candidate_match_agent_cli.settings import Settings, get_settings
 from candidate_match_agent_cli.storage.redis_job_store import (
     DESIRABLE_PREFIX,
     DocumentType,
     RedisJobStore,
-    RedisSettings,
     UnifiedJobPostingJob,
     UnifiedResumeJob,
-    get_redis_settings,
 )
 
 RESUME_PATH = "resume/Jane Doe.pdf"
@@ -79,7 +78,7 @@ async def test_init_or_get_state_creates_a_new_job_on_first_call():
 
     assert state == {
         "file_name": "Jane Doe.pdf",
-        "resume_path": RESUME_PATH,
+        "file_path": RESUME_PATH,
         "completed": "0",
         "revision_number": "0",
     }
@@ -246,7 +245,7 @@ async def test_unify_by_filename_combines_content_fields_and_errors():
 
     assert job == UnifiedResumeJob(
         file_name="Jane Doe.pdf",
-        resume_path=RESUME_PATH,
+        file_path=RESUME_PATH,
         session_id="session-99",
         is_completed=False,
         content="raw text",
@@ -271,7 +270,7 @@ async def test_unify_by_filename_returns_a_unified_job_posting_job_with_desirabl
     assert isinstance(job, UnifiedJobPostingJob)
     assert job == UnifiedJobPostingJob(
         file_name="Backend Engineer.pdf",
-        resume_path=JOB_POSTING_PATH,
+        file_path=JOB_POSTING_PATH,
         content="raw text",
         technical_skills={"skills": ["python"]},
         soft_skills=None,
@@ -300,7 +299,9 @@ async def test_async_context_manager_closes_the_connection_on_exit():
 
 
 def test_redis_job_store_builds_a_client_from_settings_when_none_injected():
-    settings = RedisSettings(_env_file=None, host="redis.internal", password="secret", db=2)
+    settings = Settings(
+        _env_file=None, redis_host="redis.internal", redis_password="secret", redis_db=2
+    )
 
     store = RedisJobStore(settings=settings)
 
@@ -311,9 +312,9 @@ def test_redis_job_store_builds_a_client_from_settings_when_none_injected():
 
 
 def test_redis_job_store_uses_cached_settings_when_none_given():
-    get_redis_settings.cache_clear()
+    get_settings.cache_clear()
 
     store = RedisJobStore()
 
-    assert store.redis.connection_pool.connection_kwargs["host"] == get_redis_settings().host
-    get_redis_settings.cache_clear()
+    assert store.redis.connection_pool.connection_kwargs["host"] == get_settings().redis_host
+    get_settings.cache_clear()
