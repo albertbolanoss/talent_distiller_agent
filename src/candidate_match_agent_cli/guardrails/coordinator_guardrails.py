@@ -1,14 +1,11 @@
 """Guardrails and SDK hooks for validating coordinator state and tool execution."""
 
-import asyncio
-
-from claude_agent_sdk import HookMatcher
-from claude_agent_sdk.types import HookContext, HookInput, HookJSONOutput
+from claude_agent_sdk import HookCallback, HookContext, HookInput, HookJSONOutput, HookMatcher
 from labs_agent_lib import file_writer, get_logger
 
 from candidate_match_agent_cli.mcp_client import EXTRACTION_TOOL_TO_FIELD
 from candidate_match_agent_cli.settings import Settings
-from candidate_match_agent_cli.storage import DESIRABLE_PREFIX, DocumentType, RedisJobStore
+from candidate_match_agent_cli.storage import DESIRABLE_PREFIX, DocumentType, JobStore
 
 logger = get_logger(__name__)
 MODULE = "[CoordinatorGuardrail]"
@@ -22,10 +19,21 @@ FIELD_TO_MCP_TOOL: dict[str, str] = {
 }
 
 
+def _deny(reason: str) -> HookJSONOutput:
+    """Builds a `PreToolUse` deny response carrying `reason` back to the model."""
+    return {
+        "hookSpecificOutput": {
+            "hookEventName": "PreToolUse",
+            "permissionDecision": "deny",
+            "permissionDecisionReason": reason,
+        }
+    }
+
+
 class CoordinatorGuardrail:
     """Enforces pre-flight, in-flight (SDK PreToolUse hook), and post-flight rules."""
 
-    def __init__(self, tracker: RedisJobStore, settings: Settings) -> None:
+    def __init__(self, tracker: JobStore, settings: Settings) -> None:
         self.tracker = tracker
         self.settings = settings
 
@@ -114,26 +122,22 @@ class CoordinatorGuardrail:
             )
             file_writer(file_path, self.failed_folder)
 
-    def build_sdk_hooks(self, file_path: str, formatted_tag: str = "formatted_resume") -> dict[str, list[HookMatcher]]:
-        """Builds native Claude Agent SDK PreToolUse hooks bound to `file_path`."""
+    def _extraction_guard(
+        self,
+        tool_name: str,
+        base_field: str,
+        file_path: str,
+        formatted_tag: str,
+    ) -> HookCallback:
+        """Builds a `PreToolUse` callback gating `tool_name` on `base_field`'s Redis checkpoint state."""
 
-        async def _validate_tool_use(
+        async def _guard(
             input_data: HookInput,
             tool_use_id: str | None,
             context: HookContext,
         ) -> HookJSONOutput:
-            tool_name = str(input_data.get("tool_name", ""))
-            base_field = EXTRACTION_TOOL_TO_FIELD[tool_name]
             candidate_fields = self.tracker.get_target_fields_for_base_field(base_field)
-
-            status = await self.tracker.get_status(file_path)
-
-            if not status.has_content:
-                for _ in range(5):
-                    await asyncio.sleep(0.1)
-                    status = await self.tracker.get_status(file_path)
-                    if status.has_content:
-                        break
+            status = await self.tracker.wait_for_content(file_path)
 
             if not status.has_content:
                 reason = (
@@ -142,34 +146,25 @@ class CoordinatorGuardrail:
                     "before invoking any extraction tools."
                 )
                 logger.warning("%s Guardrail blocked %s: %s", MODULE, tool_name, reason)
-                return {
-                    "hookSpecificOutput": {
-                        "hookEventName": "PreToolUse",
-                        "permissionDecision": "deny",
-                        "permissionDecisionReason": reason,
-                    }
-                }
+                return _deny(reason)
 
             if not any(field in status.missing_fields for field in candidate_fields):
                 reason = f"All fields for '{base_field}' ({', '.join(candidate_fields)}) are already checkpointed in Redis."
                 logger.info("%s Guardrail skipped duplicate call to %s", MODULE, tool_name)
-                return {
-                    "hookSpecificOutput": {
-                        "hookEventName": "PreToolUse",
-                        "permissionDecision": "deny",
-                        "permissionDecisionReason": reason,
-                    }
-                }
+                return _deny(reason)
 
             return {}
 
-        target_tools = "|".join(EXTRACTION_TOOL_TO_FIELD.keys())
+        return _guard
 
+    def build_sdk_hooks(self, file_path: str, formatted_tag: str = "formatted_resume") -> dict[str, list[HookMatcher]]:
+        """Declares one `PreToolUse` `HookMatcher` per extraction tool for `ClaudeAgentOptions.hooks`."""
         return {
             "PreToolUse": [
                 HookMatcher(
-                    matcher=target_tools,
-                    hooks=[_validate_tool_use],
+                    matcher=tool_name,
+                    hooks=[self._extraction_guard(tool_name, base_field, file_path, formatted_tag)],
                 )
+                for tool_name, base_field in EXTRACTION_TOOL_TO_FIELD.items()
             ],
         }

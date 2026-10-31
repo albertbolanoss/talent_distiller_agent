@@ -20,7 +20,7 @@ from candidate_match_agent_cli.storage import (
     DESIRABLE_PREFIX,
     DocumentType,
     JobRedisField,
-    RedisJobStore,
+    JobStore,
 )
 
 logger = get_logger(__name__)
@@ -61,7 +61,7 @@ def _is_desirable_tool_input(tool_input: Any) -> bool:
 
 
 async def _resolve_target_field(
-    tracker: RedisJobStore,
+    tracker: JobStore,
     file_path: str,
     base_field: str,
     tool_input: Any,
@@ -87,7 +87,7 @@ async def _resolve_target_field(
 
 
 async def _save_tool_output(
-    tracker: RedisJobStore,
+    tracker: JobStore,
     file_path: str,
     target_field: str,
     base_field: str,
@@ -119,7 +119,7 @@ async def _save_tool_output(
 
 async def process_coordinator_stream(
     client: ClaudeSDKClient,
-    tracker: RedisJobStore,
+    tracker: JobStore,
     resume_path: str,
 ) -> tuple[str | None, str | None]:
     """Drains `client.receive_response()`, persisting formatted content and each tool result in Redis.

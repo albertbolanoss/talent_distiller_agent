@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     # Shared MCP & Coordinator settings
     skill_agent_mcp_url: str = "http://127.0.0.1:8000/mcp"
     coordinator_model: str = "us.anthropic.claude-haiku-4-5-20251001-v1:0"
-    coordinator_max_revision_number: int = 3
+    coordinator_max_revision_number: int = 10
 
     # Redis 
     redis_host: str = "localhost"

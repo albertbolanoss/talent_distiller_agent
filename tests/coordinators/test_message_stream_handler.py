@@ -19,7 +19,7 @@ from candidate_match_agent_cli.coordinators.message_stream_handler import (
     process_coordinator_stream,
 )
 from candidate_match_agent_cli.storage import DocumentType
-from candidate_match_agent_cli.storage.redis_job_store import JobStatus
+from candidate_match_agent_cli.storage.job_store import JobStatus
 
 RESUME_PATH = "resume/jane.pdf"
 JOB_POSTING_PATH = "job_posting/backend.pdf"

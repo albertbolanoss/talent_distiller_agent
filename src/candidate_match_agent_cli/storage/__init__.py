@@ -1,8 +1,8 @@
-from .redis_job_store import (
+from .job_store import (
     DESIRABLE_PREFIX,
     DocumentType,
     JobRedisField,
-    RedisJobStore,
+    JobStore,
     UnifiedResumeJob,
 )
 
@@ -10,6 +10,6 @@ __all__ = [
     "DESIRABLE_PREFIX",
     "DocumentType",
     "JobRedisField",
-    "RedisJobStore",
+    "JobStore",
     "UnifiedResumeJob",
 ]

@@ -5,7 +5,7 @@ import pytest
 import candidate_match_agent_cli.coordinators.coordinator as coordinator_module
 from candidate_match_agent_cli.coordinators import run_coordinator
 from candidate_match_agent_cli.storage import DocumentType, UnifiedResumeJob
-from candidate_match_agent_cli.storage.redis_job_store import JobStatus
+from candidate_match_agent_cli.storage.job_store import JobStatus
 from labs_agent_lib.agent_environment.agent_environment import AgentEnvironment
 
 
@@ -37,7 +37,7 @@ class _FakeClaudeSDKClient:
 
 
 class _FakeTracker:
-    """Stands in for `async with RedisJobStore() as tracker` without touching Redis."""
+    """Stands in for `async with JobStore() as tracker` without touching Redis."""
 
     def __init__(self, unified_result: UnifiedResumeJob, status: JobStatus | None = None) -> None:
         self._unified_result = unified_result
@@ -126,7 +126,7 @@ async def test_builds_options_queries_and_processes_the_stream_when_tools_are_al
         assert tracker is expected_tracker
         return "end_turn", "session-123"
 
-    monkeypatch.setattr(coordinator_module, "RedisJobStore", lambda doc_type: expected_tracker)
+    monkeypatch.setattr(coordinator_module, "JobStore", lambda doc_type: expected_tracker)
     monkeypatch.setattr(coordinator_module, "CoordinatorGuardrail", guardrail_cls)
     monkeypatch.setattr(coordinator_module, "ClaudeSDKClient", fake_client_factory)
     monkeypatch.setattr(coordinator_module, "process_coordinator_stream", fake_process_coordinator_stream)
@@ -189,7 +189,7 @@ async def test_omits_resume_content_and_includes_missing_fields_for_a_job_postin
     def fail_if_called(file_path: str) -> str:
         raise AssertionError("extract_text must not be called when content already exists")
 
-    monkeypatch.setattr(coordinator_module, "RedisJobStore", lambda doc_type: tracker)
+    monkeypatch.setattr(coordinator_module, "JobStore", lambda doc_type: tracker)
     monkeypatch.setattr(coordinator_module, "CoordinatorGuardrail", guardrail_cls)
     monkeypatch.setattr(coordinator_module, "ClaudeSDKClient", fake_client_factory)
     monkeypatch.setattr(coordinator_module, "process_coordinator_stream", fake_process_coordinator_stream)
@@ -221,7 +221,7 @@ async def test_records_an_error_and_raises_when_extracted_text_is_empty(
     def fail_if_called(*args, **kwargs):
         raise AssertionError("ClaudeSDKClient must not be constructed")
 
-    monkeypatch.setattr(coordinator_module, "RedisJobStore", lambda doc_type: tracker)
+    monkeypatch.setattr(coordinator_module, "JobStore", lambda doc_type: tracker)
     monkeypatch.setattr(coordinator_module, "CoordinatorGuardrail", guardrail_cls)
     monkeypatch.setattr(coordinator_module, "ClaudeSDKClient", fail_if_called)
     monkeypatch.setattr(coordinator_module, "extract_text", lambda file_path: "   ")
@@ -247,7 +247,7 @@ async def test_skips_the_agent_entirely_when_the_guardrail_returns_no_tools(
     def fail_if_called(*args, **kwargs):
         raise AssertionError("ClaudeSDKClient must not be constructed")
 
-    monkeypatch.setattr(coordinator_module, "RedisJobStore", lambda doc_type: tracker)
+    monkeypatch.setattr(coordinator_module, "JobStore", lambda doc_type: tracker)
     monkeypatch.setattr(coordinator_module, "CoordinatorGuardrail", guardrail_cls)
     monkeypatch.setattr(coordinator_module, "ClaudeSDKClient", fail_if_called)
 
@@ -274,7 +274,7 @@ async def test_logs_and_still_returns_the_unified_result_when_the_agent_turn_rai
     def boom(*args, **kwargs):
         raise RuntimeError("boom")
 
-    monkeypatch.setattr(coordinator_module, "RedisJobStore", lambda doc_type: tracker)
+    monkeypatch.setattr(coordinator_module, "JobStore", lambda doc_type: tracker)
     monkeypatch.setattr(coordinator_module, "CoordinatorGuardrail", guardrail_cls)
     monkeypatch.setattr(coordinator_module, "ClaudeSDKClient", boom)
 

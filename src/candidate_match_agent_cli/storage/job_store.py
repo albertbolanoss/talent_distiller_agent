@@ -1,5 +1,6 @@
 """Redis-backed store for parallel MCP resume and job posting extraction state."""
 
+import asyncio
 from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
@@ -20,7 +21,7 @@ from pydantic import (
 from candidate_match_agent_cli.settings import get_settings, Settings
 
 logger = get_logger(__name__)
-MODULE = "[RedisJobStore]"
+MODULE = "[JobStore]"
 
 AGENT_JSON_ADAPTER = TypeAdapter(dict[str, Any] | list[Any])
 DESIRABLE_PREFIX = "desirable_"
@@ -162,10 +163,12 @@ STORAGE_SPECS: dict[DocumentType, DocumentStorageSpec] = {
 }
 
 
-class RedisJobStore:
+class JobStore:
     """State store for checkpointing resume and job posting extraction jobs in Redis."""
 
     ERROR_FIELD_PREFIX = "error:"
+    CONTENT_WAIT_RETRIES = 5
+    CONTENT_WAIT_INTERVAL_SECONDS = 0.1
 
     def __init__(
         self,
@@ -241,6 +244,19 @@ class RedisJobStore:
             missing_fields=[f for f in self.extraction_fields if not state.get(f)],
             session_id=state.get(JobRedisField.SESSION_ID),
         )
+
+    async def wait_for_content(self, file_path: str) -> JobStatus:
+        """Returns the job's status, briefly polling in case content is mid-write by a parallel call."""
+        status = await self.get_status(file_path)
+
+        if not status.has_content:
+            for _ in range(self.CONTENT_WAIT_RETRIES):
+                await asyncio.sleep(self.CONTENT_WAIT_INTERVAL_SECONDS)
+                status = await self.get_status(file_path)
+                if status.has_content:
+                    break
+
+        return status
 
     async def increment_attempts(self, file_path: str) -> int:
         """Atomically increments and returns the revision number in Redis."""

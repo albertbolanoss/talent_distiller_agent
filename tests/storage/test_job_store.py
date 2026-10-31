@@ -4,11 +4,12 @@ import fakeredis
 import pytest
 from fakeredis import aioredis as fake_redis
 
+import candidate_match_agent_cli.storage.job_store as job_store_module
 from candidate_match_agent_cli.settings import Settings, get_settings
-from candidate_match_agent_cli.storage.redis_job_store import (
+from candidate_match_agent_cli.storage.job_store import (
     DESIRABLE_PREFIX,
     DocumentType,
-    RedisJobStore,
+    JobStore,
     UnifiedJobPostingJob,
     UnifiedResumeJob,
 )
@@ -17,9 +18,9 @@ RESUME_PATH = "resume/Jane Doe.pdf"
 JOB_POSTING_PATH = "job_posting/Backend Engineer.pdf"
 
 
-def _store(doc_type: DocumentType = DocumentType.RESUME) -> RedisJobStore:
+def _store(doc_type: DocumentType = DocumentType.RESUME) -> JobStore:
     server = fakeredis.FakeServer()
-    return RedisJobStore(
+    return JobStore(
         doc_type=doc_type, client=fake_redis.FakeRedis(server=server, decode_responses=True)
     )
 
@@ -227,6 +228,57 @@ async def test_get_status_reports_has_content_true_once_content_is_saved():
     assert status.missing_fields == list(store.extraction_fields)
 
 
+async def test_wait_for_content_returns_immediately_when_content_already_present(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    store = _store()
+    await store.save_content(RESUME_PATH, "text")
+    sleep_calls: list[float] = []
+
+    async def fake_sleep(seconds: float) -> None:
+        sleep_calls.append(seconds)
+
+    monkeypatch.setattr(job_store_module.asyncio, "sleep", fake_sleep)
+
+    status = await store.wait_for_content(RESUME_PATH)
+
+    assert status.has_content is True
+    assert sleep_calls == []
+
+
+async def test_wait_for_content_polls_until_a_concurrent_writer_saves_it(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    store = _store()
+    sleep_calls: list[float] = []
+
+    async def fake_sleep(seconds: float) -> None:
+        sleep_calls.append(seconds)
+        await store.save_content(RESUME_PATH, "late content")
+
+    monkeypatch.setattr(job_store_module.asyncio, "sleep", fake_sleep)
+
+    status = await store.wait_for_content(RESUME_PATH)
+
+    assert status.has_content is True
+    assert sleep_calls == [JobStore.CONTENT_WAIT_INTERVAL_SECONDS]
+
+
+async def test_wait_for_content_gives_up_after_the_max_retries(monkeypatch: pytest.MonkeyPatch):
+    store = _store()
+    sleep_calls: list[float] = []
+
+    async def fake_sleep(seconds: float) -> None:
+        sleep_calls.append(seconds)
+
+    monkeypatch.setattr(job_store_module.asyncio, "sleep", fake_sleep)
+
+    status = await store.wait_for_content(RESUME_PATH)
+
+    assert status.has_content is False
+    assert sleep_calls == [JobStore.CONTENT_WAIT_INTERVAL_SECONDS] * JobStore.CONTENT_WAIT_RETRIES
+
+
 async def test_unify_by_filename_raises_when_no_job_exists():
     store = _store()
 
@@ -291,19 +343,19 @@ async def test_close_closes_the_underlying_connection():
 
 async def test_async_context_manager_closes_the_connection_on_exit():
     server = fakeredis.FakeServer()
-    store = RedisJobStore(client=fake_redis.FakeRedis(server=server, decode_responses=True))
+    store = JobStore(client=fake_redis.FakeRedis(server=server, decode_responses=True))
 
     async with store as entered:
         assert entered is store
         await entered.save_content(RESUME_PATH, "text")
 
 
-def test_redis_job_store_builds_a_client_from_settings_when_none_injected():
+def test_job_store_builds_a_client_from_settings_when_none_injected():
     settings = Settings(
         _env_file=None, redis_host="redis.internal", redis_password="secret", redis_db=2
     )
 
-    store = RedisJobStore(settings=settings)
+    store = JobStore(settings=settings)
 
     kwargs = store.redis.connection_pool.connection_kwargs
     assert kwargs["host"] == "redis.internal"
@@ -311,10 +363,10 @@ def test_redis_job_store_builds_a_client_from_settings_when_none_injected():
     assert kwargs["db"] == 2
 
 
-def test_redis_job_store_uses_cached_settings_when_none_given():
+def test_job_store_uses_cached_settings_when_none_given():
     get_settings.cache_clear()
 
-    store = RedisJobStore()
+    store = JobStore()
 
     assert store.redis.connection_pool.connection_kwargs["host"] == get_settings().redis_host
     get_settings.cache_clear()
