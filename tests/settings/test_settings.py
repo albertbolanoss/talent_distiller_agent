@@ -27,3 +27,11 @@ def test_keeps_explicitly_provided_folders_instead_of_the_derived_defaults():
     assert settings.coordinator_failed_folder == "custom/resume-failed"
     assert settings.job_posting_processed_folder == "custom/job-posting-processed"
     assert settings.job_posting_failed_folder == "custom/job-posting-failed"
+
+
+def test_redis_settings_default_when_no_env_file():
+    settings = Settings(_env_file=None)
+
+    assert settings.redis_host == "localhost"
+    assert settings.redis_password.get_secret_value() == ""
+    assert settings.redis_db == 0

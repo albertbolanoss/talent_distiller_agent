@@ -2,7 +2,6 @@
 
 from dataclasses import dataclass
 from enum import StrEnum
-from functools import lru_cache
 from pathlib import Path
 from types import TracebackType
 from typing import Any, Self
@@ -14,12 +13,11 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
-    SecretStr,
     TypeAdapter,
     ValidationError,
     field_validator,
 )
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from candidate_match_agent_cli.settings import get_settings, Settings
 
 logger = get_logger(__name__)
 MODULE = "[RedisJobStore]"
@@ -57,32 +55,11 @@ class JobRedisField(StrEnum):
     """Internal control fields stored in the Redis hash."""
 
     FILE_NAME = "file_name"
-    RESUME_PATH = "resume_path"
+    FILE_PATH = "file_path"
     CONTENT = "content"
     SESSION_ID = "session_id"
     COMPLETED = "completed"
     REVISION_NUMBER = "revision_number"
-
-
-class RedisSettings(BaseSettings):
-    """Connection settings for the extraction job store."""
-
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        env_prefix="CANDIDATE_MATCH_AGENT_REDIS_",
-        env_file_encoding="utf-8",
-        extra="ignore",
-    )
-
-    host: str = "localhost"
-    password: SecretStr = SecretStr("")
-    db: int = 0
-
-
-@lru_cache
-def get_redis_settings() -> RedisSettings:
-    """Return the cached Redis connection settings singleton."""
-    return RedisSettings()
 
 
 @dataclass(frozen=True, slots=True)
@@ -106,7 +83,7 @@ class UnifiedResumeJob(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     file_name: str
-    resume_path: str
+    file_path: str
     session_id: str | None = None
     is_completed: bool = Field(
         default=False,
@@ -193,18 +170,18 @@ class RedisJobStore:
     def __init__(
         self,
         doc_type: DocumentType = DocumentType.RESUME,
-        settings: RedisSettings | None = None,
+        settings: Settings | None = None,
         client: redis.Redis | None = None,
         ttl_seconds: int = 86400,
     ) -> None:
         self.doc_type = doc_type
         self.spec = STORAGE_SPECS[doc_type]
-        self.settings = settings or get_redis_settings()
+        self.settings = settings or get_settings()
         self.ttl = ttl_seconds
         self.redis = client or redis.Redis(
-            host=self.settings.host,
-            password=self.settings.password.get_secret_value() or None,
-            db=self.settings.db,
+            host=self.settings.redis_host,
+            password=self.settings.redis_password.get_secret_value() or None,
+            db=self.settings.redis_db,
             decode_responses=True,
         )
 
@@ -242,7 +219,7 @@ class RedisJobStore:
         if not state:
             initial_data: dict[str, str] = {
                 JobRedisField.FILE_NAME: Path(file_path).name,
-                JobRedisField.RESUME_PATH: file_path,
+                JobRedisField.FILE_PATH: file_path,
                 JobRedisField.COMPLETED: self._encode_bool(False),
                 JobRedisField.REVISION_NUMBER: "0",
             }
@@ -339,7 +316,7 @@ class RedisJobStore:
 
         payload: dict[str, Any] = {
             JobRedisField.FILE_NAME: Path(file_path_or_name).name,
-            JobRedisField.RESUME_PATH: file_path_or_name,
+            JobRedisField.FILE_PATH: file_path_or_name,
             **state,
             "errors": errors,
         }

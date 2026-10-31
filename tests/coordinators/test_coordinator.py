@@ -102,7 +102,7 @@ async def test_builds_options_queries_and_processes_the_stream_when_tools_are_al
     created_clients: list[_FakeClaudeSDKClient] = []
     unified_result = UnifiedResumeJob(
         file_name="jane.pdf",
-        resume_path="resume/jane.pdf",
+        file_path="resume/jane.pdf",
         session_id="session-123",
         is_completed=True,
         content="Candidate ✔ résumé",
@@ -163,7 +163,7 @@ async def test_omits_resume_content_and_includes_missing_fields_for_a_job_postin
 ):
     _patch_common(monkeypatch)
     unified_result = UnifiedResumeJob(
-        file_name="job.pdf", resume_path="job_posting/job.pdf", is_completed=False
+        file_name="job.pdf", file_path="job_posting/job.pdf", is_completed=False
     )
     status = JobStatus(
         resume_path="job_posting/job.pdf",
@@ -211,7 +211,7 @@ async def test_records_an_error_and_raises_when_extracted_text_is_empty(
     monkeypatch: pytest.MonkeyPatch,
 ):
     _patch_common(monkeypatch)
-    unified_result = UnifiedResumeJob(file_name="jane.pdf", resume_path="resume/jane.pdf", is_completed=False)
+    unified_result = UnifiedResumeJob(file_name="jane.pdf", file_path="resume/jane.pdf", is_completed=False)
     status = JobStatus(
         resume_path="resume/jane.pdf", revision_number=1, has_content=False, missing_fields=["languages"]
     )
@@ -240,7 +240,7 @@ async def test_skips_the_agent_entirely_when_the_guardrail_returns_no_tools(
     monkeypatch: pytest.MonkeyPatch,
 ):
     _patch_common(monkeypatch)
-    unified_result = UnifiedResumeJob(file_name="jane.pdf", resume_path="resume/jane.pdf", is_completed=True)
+    unified_result = UnifiedResumeJob(file_name="jane.pdf", file_path="resume/jane.pdf", is_completed=True)
     tracker = _FakeTracker(unified_result)
     guardrail_cls, guardrail_instances = _fake_guardrail_factory([])
 
@@ -262,7 +262,7 @@ async def test_logs_and_still_returns_the_unified_result_when_the_agent_turn_rai
     monkeypatch: pytest.MonkeyPatch,
 ):
     _patch_common(monkeypatch)
-    unified_result = UnifiedResumeJob(file_name="jane.pdf", resume_path="resume/jane.pdf", is_completed=False)
+    unified_result = UnifiedResumeJob(file_name="jane.pdf", file_path="resume/jane.pdf", is_completed=False)
     status = JobStatus(
         resume_path="resume/jane.pdf", revision_number=1, has_content=True, missing_fields=["languages"]
     )

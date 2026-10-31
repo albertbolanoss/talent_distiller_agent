@@ -3,9 +3,7 @@ from .redis_job_store import (
     DocumentType,
     JobRedisField,
     RedisJobStore,
-    RedisSettings,
     UnifiedResumeJob,
-    get_redis_settings,
 )
 
 __all__ = [
@@ -13,7 +11,5 @@ __all__ = [
     "DocumentType",
     "JobRedisField",
     "RedisJobStore",
-    "RedisSettings",
     "UnifiedResumeJob",
-    "get_redis_settings",
 ]
