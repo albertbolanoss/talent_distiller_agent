@@ -1,4 +1,4 @@
-# candidate-match-agent-cli
+# talent-distiller-agent
 
 This AI agent analyzes job postings against resumes to identify matching skills and rank candidates.
 
@@ -46,17 +46,17 @@ cp .env.example .env
 
 | Variable | Description |
 |---|---|
-| `CANDIDATE_MATCH_AGENT_PROVIDER` | Gateway to route through: `portkey` (default) or `anthropic`. |
-| `CANDIDATE_MATCH_AGENT_LOG_LEVEL` | Log verbosity: `DEBUG`, `INFO` (default), `WARNING`, or `ERROR`. |
-| `CANDIDATE_MATCH_AGENT_PORTKEY_API_KEY` | Portkey workspace key. Required when `PROVIDER=portkey`. Ask your AI Academy facilitator for one. |
-| `CANDIDATE_MATCH_AGENT_ANTHROPIC_API_KEY` | Direct Anthropic API key. Required only when `PROVIDER=anthropic`. |
-| `CANDIDATE_MATCH_AGENT_SKILL_AGENT_MCP_URL` | URL of the `candidate-skill-agent` MCP server (streamable HTTP, must end in `/mcp`). Defaults to `http://127.0.0.1:8000/mcp`. |
+| `TALENT_DISTILLER_AGENT_PROVIDER` | Gateway to route through: `portkey` (default) or `anthropic`. |
+| `TALENT_DISTILLER_AGENT_LOG_LEVEL` | Log verbosity: `DEBUG`, `INFO` (default), `WARNING`, or `ERROR`. |
+| `TALENT_DISTILLER_AGENT_PORTKEY_API_KEY` | Portkey workspace key. Required when `PROVIDER=portkey`. Ask your AI Academy facilitator for one. |
+| `TALENT_DISTILLER_AGENT_ANTHROPIC_API_KEY` | Direct Anthropic API key. Required only when `PROVIDER=anthropic`. |
+| `TALENT_DISTILLER_AGENT_SKILL_AGENT_MCP_URL` | URL of the `candidate-skill-agent` MCP server (streamable HTTP, must end in `/mcp`). Defaults to `http://127.0.0.1:8000/mcp`. |
 
 `.env` is gitignored — never commit it. Not in `.env.example` because it's not required, but if your Portkey
 workspace routes through a specific provider/credential alias, set it locally with:
 
 ```bash
-CANDIDATE_MATCH_AGENT_PORTKEY_VIRTUAL=aws-bedrock-use2
+TALENT_DISTILLER_AGENT_PORTKEY_VIRTUAL=aws-bedrock-use2
 ```
 
 (It's not a secret — just an identifier — so it's read as a plain setting, not through the Secret in the
@@ -64,9 +64,9 @@ Helm chart.)
 
 ## Connecting to the candidate-skill-agent MCP server
 
-The coordinator (`candidate_match_agent_cli.coordinators.coordinator`) talks to the 5 resume-extraction tools over
-a **streamable HTTP MCP client** (see `src/candidate_match_agent_cli/mcp_client/skill_agent.py`), pointed at the
-URL in `CANDIDATE_MATCH_AGENT_SKILL_AGENT_MCP_URL` (defaults to `http://127.0.0.1:8000/mcp`). That server lives in
+The coordinator (`talent_distiller_agent.coordinators.coordinator`) talks to the 5 resume-extraction tools over
+a **streamable HTTP MCP client** (see `src/talent_distiller_agent/mcp_client/skill_agent.py`), pointed at the
+URL in `TALENT_DISTILLER_AGENT_SKILL_AGENT_MCP_URL` (defaults to `http://127.0.0.1:8000/mcp`). That server lives in
 the sibling `candidate-skill-agent` repo and must be running before you start this project's coordinator/API.
 
 1. Clone `candidate-skill-agent` as a sibling of this repo (same parent folder) and `uv sync` it.
@@ -84,7 +84,7 @@ See that repo's `SETUP.md` for other transports (`stdio`, `sse`) and debugging w
 ## How to run this project
 
 ```bash
-uv run candidate-match-agent-api
+uv run talent-distiller-agent-api
 ```
 
 This serves the resume-upload API and runs the background resume-processing loop in the same
@@ -98,22 +98,22 @@ Tests live under `tests/` and use `pytest` + `pytest-cov`. `uv sync` already ins
 uv run pytest
 ```
 
-This also prints a coverage report for `src/candidate_match_agent_cli` (configured in `pyproject.toml`); a line is only "covered" if a test actually executes it, and `Missing` lists any line numbers that aren't.
+This also prints a coverage report for `src/talent_distiller_agent` (configured in `pyproject.toml`); a line is only "covered" if a test actually executes it, and `Missing` lists any line numbers that aren't.
 
 `labs-agent-lib` has its own repo, `pyproject.toml`, and test suite with a 100% coverage gate — see
 `../labs-agent-lib/README.md` and `../labs-agent-lib/PUBLISHING.md`.
 
 
-uv run python -m candidate_match_agent_cli.coordinators "us.anthropic.claude-sonnet-5" "resume/Resume_Luis_Alberto_Bolanos_Salazar.docx.pdf"
+uv run python -m talent_distiller_agent.coordinators "us.anthropic.claude-sonnet-5" "resume/Resume_Luis_Alberto_Bolanos_Salazar.docx.pdf"
 
 ## Resume-upload API
 
-`candidate-match-agent-api` is the only entrypoint: on startup it starts the background
+`talent-distiller-agent-api` is the only entrypoint: on startup it starts the background
 resume-processing loop (`process_resumes`, in `main.py`) as a task tied to the app's lifespan,
 and serves an HTTP API with an endpoint to upload resumes into the polled directory:
 
 ```bash
-uv run candidate-match-agent-api
+uv run talent-distiller-agent-api
 ```
 
 | Method & path  | Description |
@@ -129,4 +129,4 @@ The port defaults to `8080` and is read directly from the `PORT` env var (see `.
 
 ## Deploy in Kubernetes cluster
 
-Follow this [guide](helm/candidate-match-agent-cli/README.md) to deploy this application in kubernetes cluster or Minikube using Helm Chart.
+Follow this [guide](helm/talent-distiller-agent/README.md) to deploy this application in kubernetes cluster or Minikube using Helm Chart.

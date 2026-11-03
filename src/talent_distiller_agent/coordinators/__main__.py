@@ -1,4 +1,4 @@
-"""CLI entrypoint: `python -m candidate_match_agent_cli.coordinators <resume_path>`."""
+"""CLI entrypoint: `python -m talent_distiller_agent.coordinators <resume_path>`."""
 
 import argparse
 import asyncio

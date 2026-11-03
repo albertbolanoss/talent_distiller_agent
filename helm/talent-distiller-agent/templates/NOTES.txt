@@ -5,11 +5,11 @@
 
 2. Reach the service:
 {{- if eq .Values.service.type "NodePort" }}
-     minikube service {{ include "candidate-match-agent-cli.fullname" . }} --url
+     minikube service {{ include "talent-distiller-agent.fullname" . }} --url
 {{- else if eq .Values.service.type "LoadBalancer" }}
-     kubectl get svc {{ include "candidate-match-agent-cli.fullname" . }} -w
+     kubectl get svc {{ include "talent-distiller-agent.fullname" . }} -w
 {{- else }}
-     kubectl port-forward svc/{{ include "candidate-match-agent-cli.fullname" . }} 8080:{{ .Values.service.port }}
+     kubectl port-forward svc/{{ include "talent-distiller-agent.fullname" . }} 8080:{{ .Values.service.port }}
 {{- end }}
 
 3. Check health:

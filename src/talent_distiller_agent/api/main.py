@@ -1,6 +1,6 @@
 """Entrypoint: serves the resume-upload API and runs the resume-processing loop.
 
-    uv run candidate-match-agent-api
+    uv run talent-distiller-agent-api
 """
 
 import os

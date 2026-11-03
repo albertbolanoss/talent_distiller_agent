@@ -2,10 +2,10 @@
 
 import pytest
 
-import candidate_match_agent_cli.guardrails.coordinator_guardrails as guardrails_module
-from candidate_match_agent_cli.guardrails import CoordinatorGuardrail
-from candidate_match_agent_cli.storage import DocumentType
-from candidate_match_agent_cli.storage.redis_job_store import JobStatus
+import talent_distiller_agent.guardrails.coordinator_guardrails as guardrails_module
+from talent_distiller_agent.guardrails import CoordinatorGuardrail
+from talent_distiller_agent.storage import DocumentType
+from talent_distiller_agent.storage.redis_job_store import JobStatus
 
 RESUME_PATH = "resume/jane.pdf"
 JOB_POSTING_PATH = "job_posting/backend-engineer.pdf"

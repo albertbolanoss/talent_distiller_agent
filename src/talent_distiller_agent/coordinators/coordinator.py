@@ -12,17 +12,17 @@ from labs_agent_lib import (
     get_logger,
 )
 
-from candidate_match_agent_cli.guardrails import CoordinatorGuardrail
-from candidate_match_agent_cli.mcp_client import (
+from talent_distiller_agent.guardrails import CoordinatorGuardrail
+from talent_distiller_agent.mcp_client import (
     SKILL_AGENT_SERVER_NAME,
     get_skill_agent_mcp_server,
 )
-from candidate_match_agent_cli.prompts import (
+from talent_distiller_agent.prompts import (
     JOB_POSTING_COORDINATOR_ORCHESTRATION_PROMPT,
     RESUME_COORDINATOR_ORCHESTRATION_PROMPT,
 )
-from candidate_match_agent_cli.settings import get_settings
-from candidate_match_agent_cli.storage import (
+from talent_distiller_agent.settings import get_settings
+from talent_distiller_agent.storage import (
     DocumentType,
     JobRedisField,
     RedisJobStore,

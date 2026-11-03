@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: luigisamurai/candidate-match-agent-cli
+  repository: luigisamurai/talent-distiller-agent
   tag: "0.1.0"
   pullPolicy: IfNotPresent
 
@@ -59,7 +59,7 @@ config:
 
 # Placeholder credentials only - do NOT put real secrets here or commit real values.
 # Override at install time instead, e.g.:
-#   helm install candidate-match-agent-cli ./helm/candidate-match-agent-cli \
+#   helm install talent-distiller-agent ./helm/talent-distiller-agent \
 #     --set secrets.portkeyApiKey=***
 # or with a separate, untracked values file (helm install ... -f secrets.values.yaml).
 secrets:

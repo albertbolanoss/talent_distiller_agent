@@ -1,6 +1,6 @@
 """Tests for the application settings' derived folder defaults."""
 
-from candidate_match_agent_cli.settings import Settings
+from talent_distiller_agent.settings import Settings
 
 
 def test_resolves_default_folders_from_the_resume_and_job_posting_dirs():

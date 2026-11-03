@@ -7,9 +7,9 @@ from starlette.applications import Starlette
 from starlette.routing import Route
 from starlette.testclient import TestClient
 
-import candidate_match_agent_cli.api.resumes as resumes_module
-from candidate_match_agent_cli.api.resumes import upload_resume
-from candidate_match_agent_cli.settings import Settings
+import talent_distiller_agent.api.resumes as resumes_module
+from talent_distiller_agent.api.resumes import upload_resume
+from talent_distiller_agent.settings import Settings
 
 
 def _client(resume_dir: Path, monkeypatch: pytest.MonkeyPatch) -> TestClient:

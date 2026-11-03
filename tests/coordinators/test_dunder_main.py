@@ -1,10 +1,10 @@
-"""Tests for the `python -m candidate_match_agent_cli.coordinators <resume_path>` CLI."""
+"""Tests for the `python -m talent_distiller_agent.coordinators <resume_path>` CLI."""
 
 import sys
 
 import pytest
 
-import candidate_match_agent_cli.coordinators.__main__ as dunder_main
+import talent_distiller_agent.coordinators.__main__ as dunder_main
 
 
 def test_parses_argv_and_invokes_run_coordinator_with_them(monkeypatch: pytest.MonkeyPatch):
@@ -15,7 +15,7 @@ def test_parses_argv_and_invokes_run_coordinator_with_them(monkeypatch: pytest.M
         return {"resume_path": resume_path, "content": "stub"}
 
     monkeypatch.setattr(dunder_main, "run_coordinator", fake_run_coordinator)
-    monkeypatch.setattr(sys, "argv", ["candidate-match-agent-cli-coordinator", "resume.pdf"])
+    monkeypatch.setattr(sys, "argv", ["talent-distiller-agent-coordinator", "resume.pdf"])
 
     dunder_main.main()
 
@@ -25,7 +25,7 @@ def test_parses_argv_and_invokes_run_coordinator_with_them(monkeypatch: pytest.M
 def test_missing_arguments_exit_with_a_usage_error(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ):
-    monkeypatch.setattr(sys, "argv", ["candidate-match-agent-cli-coordinator"])
+    monkeypatch.setattr(sys, "argv", ["talent-distiller-agent-coordinator"])
 
     with pytest.raises(SystemExit) as exc_info:
         dunder_main.main()

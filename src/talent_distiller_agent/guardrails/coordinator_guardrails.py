@@ -6,9 +6,9 @@ from claude_agent_sdk import HookMatcher
 from claude_agent_sdk.types import HookContext, HookInput, HookJSONOutput
 from labs_agent_lib import file_writer, get_logger
 
-from candidate_match_agent_cli.mcp_client import EXTRACTION_TOOL_TO_FIELD
-from candidate_match_agent_cli.settings import Settings
-from candidate_match_agent_cli.storage import DESIRABLE_PREFIX, DocumentType, RedisJobStore
+from talent_distiller_agent.mcp_client import EXTRACTION_TOOL_TO_FIELD
+from talent_distiller_agent.settings import Settings
+from talent_distiller_agent.storage import DESIRABLE_PREFIX, DocumentType, RedisJobStore
 
 logger = get_logger(__name__)
 MODULE = "[CoordinatorGuardrail]"

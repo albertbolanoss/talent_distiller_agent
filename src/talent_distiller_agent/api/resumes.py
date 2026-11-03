@@ -5,7 +5,7 @@ from pathlib import Path
 
 import anyio
 from labs_agent_lib.file_reader import SUPPORTED_EXTENSIONS
-from candidate_match_agent_cli.settings import get_settings
+from talent_distiller_agent.settings import get_settings
 from starlette.datastructures import UploadFile
 from starlette.requests import Request
 from starlette.responses import JSONResponse

@@ -2,7 +2,7 @@
 
 import pytest
 
-import candidate_match_agent_cli.api.main as api_main_module
+import talent_distiller_agent.api.main as api_main_module
 
 
 def test_main_serves_the_app_on_the_port_env_var(monkeypatch: pytest.MonkeyPatch):

@@ -1,4 +1,4 @@
-# candidate-match-agent-cli Helm Chart
+# talent-distiller-agent Helm Chart
 
 Deploys the resume-matching agent (resume-upload API + background resume-processing loop) to
 Kubernetes. The chart installs a `Deployment`, a `Service`, a `ConfigMap`, and a `Secret`.
@@ -16,16 +16,16 @@ All commands below assume the repository root as the working directory.
 
 ```bash
 # Build and run locally
-docker build -t candidate-match-agent-cli:local .
-docker run --rm -p 8080:8080 --env-file .env candidate-match-agent-cli:local
+docker build -t talent-distiller-agent:local .
+docker run --rm -p 8080:8080 --env-file .env talent-distiller-agent:local
 
 # Build and publish to a registry
-docker build -t candidate-match-agent-cli:0.1.0 .
-docker tag candidate-match-agent-cli:0.1.0 luigisamurai/candidate-match-agent-cli:0.1.0
-docker push luigisamurai/candidate-match-agent-cli:0.1.0
+docker build -t talent-distiller-agent:0.1.0 .
+docker tag talent-distiller-agent:0.1.0 luigisamurai/talent-distiller-agent:0.1.0
+docker push luigisamurai/talent-distiller-agent:0.1.0
 ```
 
-The image's entrypoint is `candidate-match-agent-api` (HTTP API + background loop).
+The image's entrypoint is `talent-distiller-agent-api` (HTTP API + background loop).
 
 To use a published image instead of building locally, point `image.repository`/`image.tag` in
 `values.yaml` (or via `--set`) at it; `imagePullPolicy` defaults to `IfNotPresent`.
@@ -40,13 +40,13 @@ minikube start
 # > minikube, disable its bundled Kubernetes so the two don't conflict.
 
 # Install the chart
-helm install candidate-match-agent-cli ./helm/candidate-match-agent-cli --set secrets.portkeyApiKey="" --set config.resumePollIntervalSeconds="30"
+helm install talent-distiller-agent ./helm/talent-distiller-agent --set secrets.portkeyApiKey="" --set config.resumePollIntervalSeconds="30"
 
 # ...or upgrade an existing install, overriding a value
-helm upgrade candidate-match-agent-cli ./helm/candidate-match-agent-cli --set secrets.portkeyApiKey="" --set config.resumePollIntervalSeconds="30"
+helm upgrade talent-distiller-agent ./helm/talent-distiller-agent --set secrets.portkeyApiKey="" --set config.resumePollIntervalSeconds="30"
 
 # Check the pods came up
-kubectl get pods -l app.kubernetes.io/instance=candidate-match-agent-cli
+kubectl get pods -l app.kubernetes.io/instance=talent-distiller-agent
 ```
 kubec
 ## 3. Access the service
@@ -55,7 +55,7 @@ The `Service` is `NodePort` by default, so any of these work:
 
 **Option 1 — `minikube service` (opens a browser or prints the URL):**
 ```bash
-minikube service candidate-match-agent-cli --url
+minikube service talent-distiller-agent --url
 ```
 
 **Option 2 — direct NodePort access:**
@@ -66,7 +66,7 @@ minikube ip
 
 **Option 3 — port-forward to localhost:**
 ```bash
-kubectl port-forward svc/candidate-match-agent-cli 8080:80
+kubectl port-forward svc/talent-distiller-agent 8080:80
 # then open http://localhost:8080
 
 
@@ -90,7 +90,7 @@ The chart ships with **empty placeholder credentials** (see `secrets.*` in `valu
 commit real values there. Pass them at install/upgrade time instead:
 
 ```bash
-helm install candidate-match-agent-cli ./helm/candidate-match-agent-cli \
+helm install talent-distiller-agent ./helm/talent-distiller-agent \
   --set secrets.portkeyApiKey=***
 ```
 
