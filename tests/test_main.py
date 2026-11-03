@@ -4,9 +4,9 @@ from pathlib import Path
 
 import pytest
 
-import candidate_match_agent_cli.main as main_module
-from candidate_match_agent_cli.settings import Settings
-from candidate_match_agent_cli.storage import DocumentType
+import talent_distiller_agent.main as main_module
+from talent_distiller_agent.settings import Settings
+from talent_distiller_agent.storage import DocumentType
 
 
 class _StopLoop(Exception):

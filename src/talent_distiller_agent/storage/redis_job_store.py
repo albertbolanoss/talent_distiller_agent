@@ -17,7 +17,7 @@ from pydantic import (
     ValidationError,
     field_validator,
 )
-from candidate_match_agent_cli.settings import get_settings, Settings
+from talent_distiller_agent.settings import get_settings, Settings
 
 logger = get_logger(__name__)
 MODULE = "[RedisJobStore]"

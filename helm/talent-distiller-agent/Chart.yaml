@@ -1,5 +1,5 @@
 apiVersion: v2
-name: candidate-match-agent-cli
+name: talent-distiller-agent
 description: Resume-matching agent - resume-upload API and background resume-processing loop.
 type: application
 version: 0.1.0

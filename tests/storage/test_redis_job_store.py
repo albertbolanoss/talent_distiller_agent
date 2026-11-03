@@ -4,8 +4,8 @@ import fakeredis
 import pytest
 from fakeredis import aioredis as fake_redis
 
-from candidate_match_agent_cli.settings import Settings, get_settings
-from candidate_match_agent_cli.storage.redis_job_store import (
+from talent_distiller_agent.settings import Settings, get_settings
+from talent_distiller_agent.storage.redis_job_store import (
     DESIRABLE_PREFIX,
     DocumentType,
     RedisJobStore,

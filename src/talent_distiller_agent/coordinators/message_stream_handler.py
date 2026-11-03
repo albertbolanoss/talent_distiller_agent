@@ -15,8 +15,8 @@ from claude_agent_sdk import (
 )
 from labs_agent_lib import get_logger
 
-from candidate_match_agent_cli.mcp_client import EXTRACTION_TOOL_TO_FIELD
-from candidate_match_agent_cli.storage import (
+from talent_distiller_agent.mcp_client import EXTRACTION_TOOL_TO_FIELD
+from talent_distiller_agent.storage import (
     DESIRABLE_PREFIX,
     DocumentType,
     JobRedisField,

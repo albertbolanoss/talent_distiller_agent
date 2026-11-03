@@ -12,14 +12,14 @@ from claude_agent_sdk import (
     UserMessage,
 )
 
-from candidate_match_agent_cli.coordinators.message_stream_handler import (
+from talent_distiller_agent.coordinators.message_stream_handler import (
     _extract_formatted_content,
     _extract_text,
     _is_desirable_tool_input,
     process_coordinator_stream,
 )
-from candidate_match_agent_cli.storage import DocumentType
-from candidate_match_agent_cli.storage.redis_job_store import JobStatus
+from talent_distiller_agent.storage import DocumentType
+from talent_distiller_agent.storage.redis_job_store import JobStatus
 
 RESUME_PATH = "resume/jane.pdf"
 JOB_POSTING_PATH = "job_posting/backend.pdf"

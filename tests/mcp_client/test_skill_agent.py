@@ -1,12 +1,12 @@
 """Tests for the HTTP MCP client config of the external candidate-skill-agent server."""
 
-from candidate_match_agent_cli.mcp_client import (
+from talent_distiller_agent.mcp_client import (
     EXTRACTION_TOOL_TO_FIELD,
     READ_DOCUMENT_TOOL_NAME,
     SKILL_AGENT_SERVER_NAME,
     get_skill_agent_mcp_server,
 )
-from candidate_match_agent_cli.settings import Settings
+from talent_distiller_agent.settings import Settings
 
 
 def test_read_document_tool_name_is_namespaced_under_the_skill_agent_server():

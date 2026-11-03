@@ -2,7 +2,7 @@
 
 from claude_agent_sdk.types import McpHttpServerConfig
 
-from candidate_match_agent_cli.settings import Settings
+from talent_distiller_agent.settings import Settings
 
 SKILL_AGENT_SERVER_NAME = "candidate-skill-agent"
 

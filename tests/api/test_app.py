@@ -4,7 +4,7 @@ import asyncio
 
 from starlette.testclient import TestClient
 
-import candidate_match_agent_cli.api.app as app_module
+import talent_distiller_agent.api.app as app_module
 
 
 def test_healthz_reports_ok():

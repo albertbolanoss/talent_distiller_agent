@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "candidate-match-agent-cli.fullname" . }}
+  name: {{ include "talent-distiller-agent.fullname" . }}
   labels:
-    {{- include "candidate-match-agent-cli.labels" . | nindent 4 }}
+    {{- include "talent-distiller-agent.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      {{- include "candidate-match-agent-cli.selectorLabels" . | nindent 6 }}
+      {{- include "talent-distiller-agent.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "candidate-match-agent-cli.selectorLabels" . | nindent 8 }}
+        {{- include "talent-distiller-agent.selectorLabels" . | nindent 8 }}
       {{- with .Values.podAnnotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
@@ -22,7 +22,7 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "candidate-match-agent-cli.serviceAccountName" . }}
+      serviceAccountName: {{ include "talent-distiller-agent.serviceAccountName" . }}
       securityContext:
         fsGroup: 1000
       containers:
@@ -43,9 +43,9 @@ spec:
               value: {{ .Values.service.targetPort | quote }}
           envFrom:
             - configMapRef:
-                name: {{ include "candidate-match-agent-cli.fullname" . }}
+                name: {{ include "talent-distiller-agent.fullname" . }}
             - secretRef:
-                name: {{ include "candidate-match-agent-cli.fullname" . }}
+                name: {{ include "talent-distiller-agent.fullname" . }}
           volumeMounts:
             - name: resume-storage
               mountPath: {{ .Values.config.resumeDir }}

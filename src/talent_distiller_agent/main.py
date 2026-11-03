@@ -1,7 +1,7 @@
 """Background loop: periodically reads resume and job posting files via the coordinator agent.
 
-Started by `candidate_match_agent_cli.api.app`'s lifespan, inside the same process as the
-resume-upload API - see `candidate-match-agent-api` in `[project.scripts]`.
+Started by `talent_distiller_agent.api.app`'s lifespan, inside the same process as the
+resume-upload API - see `talent-distiller-agent-api` in `[project.scripts]`.
 """
 
 import asyncio
@@ -10,8 +10,8 @@ from pathlib import Path
 from labs_agent_lib import get_logger
 from labs_agent_lib.file_reader import SUPPORTED_EXTENSIONS
 
-from candidate_match_agent_cli.settings import get_settings
-from candidate_match_agent_cli.storage import DocumentType
+from talent_distiller_agent.settings import get_settings
+from talent_distiller_agent.storage import DocumentType
 
 from .coordinators.coordinator import run_coordinator
 

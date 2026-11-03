@@ -2,10 +2,10 @@
 
 import pytest
 
-import candidate_match_agent_cli.coordinators.coordinator as coordinator_module
-from candidate_match_agent_cli.coordinators import run_coordinator
-from candidate_match_agent_cli.storage import DocumentType, UnifiedResumeJob
-from candidate_match_agent_cli.storage.redis_job_store import JobStatus
+import talent_distiller_agent.coordinators.coordinator as coordinator_module
+from talent_distiller_agent.coordinators import run_coordinator
+from talent_distiller_agent.storage import DocumentType, UnifiedResumeJob
+from talent_distiller_agent.storage.redis_job_store import JobStatus
 from labs_agent_lib.agent_environment.agent_environment import AgentEnvironment
 
 
