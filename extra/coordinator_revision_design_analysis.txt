@@ -1,0 +1,112 @@
+ANALISIS: es un error de diseno que cada revision_number re-invoque las tools sin
+esperar la respuesta del LLM?
+================================================================================
+
+PREGUNTA ORIGINAL
+-------------------
+"Cada revision_number vuelve a invocar las tools sin darle tiempo de responder,
+entonces estoy haciendo llamados al LLM pero sin dejarlo responder, sobre-escribiendo
+la respuesta."
+
+RESPUESTA CORTA
+-------------------
+No, no hay una condicion de carrera ni un turno que se corte a la mitad. El loop SI
+espera a que el LLM y sus tool-calls terminen completamente antes de avanzar a la
+siguiente revision. Revise el codigo real (no es especulacion):
+
+1. src/talent_distiller_agent/main.py (_poll_loop):
+
+       while True:
+           await _process_directory_batch(...)   # <- se espera completo
+           await asyncio.sleep(poll_interval_seconds)
+
+   `_process_directory_batch` hace:
+
+       results = await asyncio.gather(
+           *(run_coordinator(str(p), doc_type=doc_type) for p in file_paths),
+           return_exceptions=True,
+       )
+
+   Es un `asyncio.gather` de ARCHIVOS DIFERENTES (hasta `max_files_per_batch`), no
+   del mismo archivo repetido. El `await` bloquea el loop hasta que CADA
+   `run_coordinator` de ese lote termine. No hay un segundo poll tick que arranque
+   mientras el anterior sigue corriendo.
+
+2. src/talent_distiller_agent/coordinators/coordinator.py (run_coordinator):
+
+       async with ClaudeSDKClient(options=options) as client:
+           await client.query(prompt)
+           stop_reason, session_id = await process_coordinator_stream(...)
+
+   `process_coordinator_stream` consume `client.receive_response()` con un
+   `async for` hasta que llega el `ResultMessage` (fin del turno). Eso incluye
+   esperar cada `ToolUseBlock` -> `ToolResultBlock` del tool call MCP antes de
+   seguir. El turno no se "corta" ni se sobre-escribe a mitad de camino.
+
+Conclusion: dentro de UNA revision, el coordinador espera correctamente la
+respuesta completa del LLM y de las 4 tools MCP que decida invocar. El `revision_number`
+solo avanza una vez que ese turno completo (`ResultMessage`) ya se recibio.
+
+LO QUE SI ES UN PROBLEMA DE DISENO (real, pero distinto al que se sospechaba)
+--------------------------------------------------------------------------------
+El ciclo de revisiones NO distingue el TIPO de fallo:
+
+  a) Error de infraestructura (MCP no alcanzable, timeout de red, sesion caida)
+     - es el mismo error en cada intento, no se va a resolver solo.
+  b) Error de contenido (el agente respondio JSON invalido) - ya tiene
+     correccion dentro del MISMO tool call (`max_retries` en cada extract_*),
+     eso esta bien resuelto a nivel de mcp-skills-extractor-agents.
+  c) Campo legitimamente vacio (el resume no tiene certificaciones, por ejemplo)
+     - no es un error, es un resultado valido.
+
+Hoy, (a) agota el revision_number EXACTAMENTE igual que cualquier otro caso:
+cada 30s (resume_poll_interval_seconds) se vuelve a llamar al LLM coordinador
+completo (un turno nuevo de un modelo, hoy "claude-haiku-4-5"), que vuelve a
+decidir invocar las 4 tools, que vuelven a fallar por la MISMA razon de
+infraestructura, hasta agotar los 10 intentos (`coordinator_max_revision_number`).
+Eso es: 10 turnos de LLM + hasta 40 intentos de tool-call, TODOS destinados a
+fallar exactamente igual, solo para terminar en failed/ de todos modos. Es
+gasto de tokens sin valor informativo adicional despues del primer intento.
+
+Esto es justamente lo que tu propuesta de status/error por skill (pending/failed +
+mensaje de error) resuelve bien: permite, a futuro, distinguir "nunca lo intentamos"
+de "lo intentamos y fallo por X" y decidir con esa informacion si vale la pena
+seguir reintentando o cortar antes (ver el documento de requerimiento refinado).
+
+POR QUE AHORA MISMO NO LLEGA NINGUNA RESPUESTA (hallazgo nuevo, el bloqueante real)
+--------------------------------------------------------------------------------------
+Revisando el Pod que esta corriendo en el cluster (`kubectl exec ... python3 -c
+"from talent_distiller_agent.mcp_client.skill_agent import
+get_skill_agent_mcp_servers"`) la importacion FALLA: esa funcion no existe en la
+imagen desplegada. Al leer el archivo real dentro del pod
+(`/app/src/talent_distiller_agent/mcp_client/skill_agent.py` y
+`/app/src/talent_distiller_agent/settings/settings.py`), la version EMPAQUETADA en
+la imagen Docker es mas vieja que el codigo actual del repo:
+
+  - Define UN solo servidor MCP ("candidate-skill-agent") y UNA sola URL:
+    `settings.skill_agent_mcp_url`, default "http://127.0.0.1:8000/mcp".
+  - NO existen los 4 campos separados (`skill_agent_technical_mcp_url`,
+    `skill_agent_soft_mcp_url`, etc.) que si estan en el codigo fuente actual.
+
+El ConfigMap que se corrigio (con las 4 URLs
+`TALENT_DISTILLER_AGENT_SKILL_AGENT_*_MCP_URL`) es completamente ignorado por este
+binario (`extra="ignore"` en la configuracion de Pydantic Settings), porque ese
+binario nunca pide esas variables - sigue usando el default roto
+`127.0.0.1:8000/mcp`, igual que antes de cualquier fix.
+
+En otras palabras: el `helm upgrade` con las URLs correctas NO cambio nada en
+produccion porque **la imagen Docker nunca se reconstruyo** desde el codigo fuente
+actual (`image.tag: "0.1.0"`, `pullPolicy: IfNotPresent` - el mismo build de
+siempre). Esta es la causa real de por que sigues sin ver respuesta de las tools,
+no un problema de diseno en el loop de revisiones.
+
+SIGUIENTE PASO SUGERIDO (bloqueante, antes de cualquier otra mejora)
+-------------------------------------------------------------------------
+1. Reconstruir y publicar la imagen `luigisamurai/talent-distiller-agent` desde el
+   HEAD actual del repo (o cargarla directo al nodo con `minikube image load` si
+   es un build local).
+2. Subir el tag de version (o forzar `imagePullPolicy: Always` + re-pull) para que
+   Kubernetes no reutilice la imagen vieja cacheada.
+3. Confirmar post-redeploy que `get_skill_agent_mcp_servers` SI existe en el pod
+   (mismo chequeo de `kubectl exec ... python3 -c "..."` usado para detectar esto).
+4. Solo despues de eso, re-probar el flujo end-to-end con un resume de prueba.
