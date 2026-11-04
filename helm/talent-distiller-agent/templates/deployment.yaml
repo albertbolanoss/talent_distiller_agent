@@ -49,6 +49,8 @@ spec:
           volumeMounts:
             - name: resume-storage
               mountPath: {{ .Values.config.resumeDir }}
+            - name: job-posting-storage
+              mountPath: {{ .Values.config.jobPostingDir }}
           readinessProbe:
             httpGet:
               path: {{ .Values.probes.path }}
@@ -71,3 +73,6 @@ spec:
         - name: resume-storage
           emptyDir:
             sizeLimit: {{ .Values.resumeVolume.sizeLimit }}
+        - name: job-posting-storage
+          emptyDir:
+            sizeLimit: {{ .Values.jobPostingVolume.sizeLimit }}

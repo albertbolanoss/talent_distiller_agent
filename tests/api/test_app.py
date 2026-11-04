@@ -1,4 +1,4 @@
-"""Tests for the Starlette app wiring the resume-upload API and the background poll loop."""
+"""Tests for the Starlette app wiring the upload API and the background poll loop."""
 
 import asyncio
 
@@ -13,6 +13,15 @@ def test_healthz_reports_ok():
 
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
+
+
+def test_job_posting_route_is_wired_to_the_upload_handler():
+    app = app_module.create_app()
+
+    route = next(route for route in app.routes if route.path == "/job_posting")
+
+    assert route.endpoint is app_module.upload_job_posting
+    assert route.methods == {"POST"}
 
 
 async def test_lifespan_starts_and_cancels_the_background_resume_processing_loop(monkeypatch):

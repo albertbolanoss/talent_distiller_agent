@@ -1,0 +1,181 @@
+ALEXANDER WRIGHT
+Principal Systems Engineer · Solutions Architect · Cloud Native & AI Specialist · Data Engineer
+
+CONTACT INFORMATION
+
+Mobile: (+1) 555 902 4567
+
+Location: Toronto, ON, Canada
+
+Email: a.wright.tech@email.com
+
+LinkedIn: www.linkedin.com/in/alexwright-tech-profile
+
+GitHub: https://github.com/alexwright-dev
+
+PROFESSIONAL OVERVIEW
+With ~18 years of experience in the technology sector, I have led cross-functional teams delivering cloud-native, highly scalable, and AI-driven solutions adopted by global enterprises. I consistently improve system resilience, time-to-market, and user engagement by applying modern architectural paradigms, microservices, domain-driven design, and multi-cloud strategies. My expertise spans technical leadership, full-stack engineering, and advanced DevSecOps practices. I bring strong capabilities in data streaming, generative AI, and machine learning, leveraging large language models (LLMs), real-time telemetry, and predictive analytics to enhance enterprise platforms. Recognized for strategic vision, seamless cross-team communication, and adaptability, I am committed to mentoring engineering teams and driving future-ready architectures that generate measurable business value.
+
+ROLES
+
+Principal Solutions Architect
+
+Lead Cloud & Platform Engineer
+
+Senior AI & Data Architect
+
+Technical Tech Lead
+
+SOLUTIONS & EXPERTISE
+
+Distributed Systems & Architecture (Microservices, Event-Driven, Serverless, CQRS, Domain-Driven Design)
+
+Multi-Cloud Infrastructure & Migrations (AWS, Azure, Kubernetes ecosystem)
+
+AI Integrations & Generative AI (LLMs, RAG Architectures, Prompt Engineering, Agentic AI)
+
+Machine Learning & Predictive Modeling (Deep Learning, NLP, Computer Vision)
+
+High-Volume Data Engineering & Streaming (Apache Flink, Kafka, Real-time analytics)
+
+DevSecOps & CI/CD Automation (GitLab CI, Terraform, ArgoCD)
+
+Infrastructure as Code & Container Orchestration
+
+Advanced Observability, Performance Tuning, and Chaos Engineering
+
+INDUSTRIES
+
+Healthcare & Life Sciences (telemedicine, patient data security, AI diagnostics)
+
+FinTech & Trading (fraud detection, real-time transaction processing)
+
+Telecommunications (IoT telemetry, network event processing)
+
+Renewable Energy (smart grid analytics, asset management)
+
+E-learning & EdTech (adaptive learning algorithms, platform scaling)
+
+TECHNOLOGIES
+
+Architectures & Paradigms: Microservices, Event-Driven, CQRS, Event Sourcing, Domain-Driven Design (DDD), Serverless, REST, GraphQL, gRPC, SOLID Principles, Twelve-Factor App, Chaos Engineering.
+
+AI Engineering & Machine Learning: PyTorch, TensorFlow, Hugging Face, LangChain, LlamaIndex, OpenAI APIs, OpenCV, NLP pipelines, RAG implementations, Vector Databases (Pinecone, Milvus).
+
+Data Engineering: Apache Flink, Apache Spark, Databricks, Snowflake, Apache Kafka, Airflow, Elasticsearch, Data Modeling.
+
+Backend: Go (Golang), Rust, Java (Spring Boot), Python (FastAPI, Django), Node.js (NestJS), C#/.NET Core.
+
+Frontend: Vue.js, React, TypeScript, Tailwind CSS, WebAssembly (Wasm), RxJS.
+
+Cloud Platforms: AWS (EKS, S3, RDS, Lambda, SageMaker, DynamoDB), Microsoft Azure (AKS, Cosmos DB, Azure Functions, Key Vault).
+
+DevSecOps & Infrastructure: Kubernetes, Terraform, Docker, CI/CD (GitLab CI, GitHub Actions, ArgoCD), Datadog, Grafana, Prometheus, SonarQube, HashiCorp Vault.
+
+Databases: PostgreSQL, Cassandra, MongoDB, Redis, Neo4j (GraphDB), SQL Server.
+
+Testing & QA: PyTest, JUnit, Jest, Cypress, Testcontainers, K6 (Load Testing), Contract Testing.
+
+SOFT SKILLS
+
+Strategic Leadership & Technical Mentorship
+
+Cross-functional Communication & Stakeholder Management
+
+Agile & Lean Delivery Mindset
+
+Complex Problem Solving & Critical Thinking
+
+Conflict Resolution & Negotiation
+
+Continuous Learning & High Adaptability
+
+PROFESSIONAL TRAINING / CERTIFICATIONS
+
+AWS Certified Solutions Architect – Professional
+
+Certified Kubernetes Administrator (CKA)
+
+DeepLearning.AI TensorFlow Developer Professional Certificate
+
+LANGUAGES
+
+English (Native)
+
+French (C1 - Advanced)
+
+German (B2 - Upper Intermediate)
+
+PROFESSIONAL AND BUSINESS EXPERIENCE
+
+Global IT Consulting Corp. — Lead AI & Cloud Architect
+Aug 2024 – Present
+Client: MediCare Global Solutions
+
+Architected and delivered AI-powered diagnostic and search solutions using RAG pipelines, LLMs, and vector databases, drastically improving medical record retrieval accuracy.
+
+Built real-time streaming pipelines with Apache Flink and Kafka to process patient telemetry data, ensuring zero data loss with robust DLQ handling and idempotency.
+
+Developed high-performance microservices using Go and Python (FastAPI), enforcing strict healthcare compliance and data governance standards.
+
+Migrated legacy workloads to Azure Kubernetes Service (AKS), authored Terraform scripts, and modernized CI/CD pipelines via GitLab CI, reducing deployment times by 40%.
+
+Mentored junior and mid-level engineers, leading Architectural Decision Records (ADRs) and conducting rigorous code reviews.
+
+Global IT Consulting Corp. — Sr. Platform Engineer
+Jun 2020 – Mar 2024
+Client: AeroLogistics & IoT Dynamics
+
+Designed and built scalable backend systems for global fleet geolocation and IoT event-processing platforms capable of handling millions of concurrent events.
+
+Delivered asynchronous microservices (Rust/Node.js) and intuitive control panels (Vue.js/TypeScript).
+
+Established a comprehensive testing strategy (unit, contract, E2E) and automated infrastructure provisioning using Terraform and ArgoCD on AWS.
+
+Integrated Auth0, multi-tenancy controls, and established event-driven flows with Kafka, significantly improving system security and operational automation.
+
+Applied advanced concurrency models and memory-safe programming to eliminate latency bottlenecks.
+
+NextGen Software Studio — Sr. Full-Stack Developer
+Jul 2016 – Mar 2020
+Client: CloudCRM Inc.
+
+Co-defined the engineering department's cross-functional quality strategy, establishing CI/CD standards and code coverage minimums across 5+ teams.
+
+Designed and delivered resilient REST and GraphQL APIs (Node.js/TypeScript) alongside highly interactive frontend applications (React).
+
+Automated build and deployment pipelines, heavily reducing manual overhead and release cycle times.
+
+Managed and scaled distributed databases, smoothly transitioning monolithic data structures into scalable PostgreSQL and Cassandra clusters.
+
+EduTech Solutions — Software Developer
+March 2015 - July 2016
+Clients: FinTrust Bank / SmartLearn EdTech
+
+Delivered backend services for nationwide e-learning platforms utilized in government modernization programs.
+
+Built secure banking applications with C#/.NET Core, implementing asymmetric cryptography protocols for digital onboarding and biometric authentication.
+
+Ensured strict software quality and financial compliance via unit, API, and E2E tests, deploying solutions across highly available environments.
+
+Enterprise Systems Ltd. — Lead Developer
+October 2011 – June 2016
+Clients: AgriChain Systems / AutoParts Network
+
+Led the end-to-end development of enterprise resource planning modules, focusing on procurement, invoicing, and inventory tracking.
+
+Directed technical strategy, modeled databases (SQL Server), and delivered robust Java (Spring Framework) APIs and ETL processes.
+
+Built monolithic frontend interfaces and subsequently led the initiative to decouple them using modern JavaScript frameworks.
+
+Implemented automated testing and staging deployments, elevating system uptime and reliability for critical supply chain operations.
+
+Financial Tech Partners — Jr. Developer
+Feb 2008 – Oct 2011
+Client: National Retail Federation
+
+Engineered core modules for a high-volume debt-collection platform featuring automated dialing algorithms and intelligent agent routing.
+
+Developed backend logic utilizing Java EJB and PHP, managing complex database transactions in Oracle.
+
+Gained foundational experience in concurrent programming, system maintenance, and delivering secure solutions in high-pressure financial environments.

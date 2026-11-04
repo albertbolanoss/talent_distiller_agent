@@ -1,0 +1,20 @@
+Acerca del empleo
+
+Como Senior Software Engineer en Mercado Libre, diseñarás y escalarás sistemas innovadores y seguros que resuelven problemas reales y de alto impacto. Trabajarás en un entorno dinámico con tecnología de vanguardia, aplicando buenas prácticas de ingeniería, modelos de IA propios y aprendizaje continuo, con el propósito de democratizar el comercio electrónico y los servicios financieros en América Latina.
+Imagínate emprendiendo proyectos desafiantes, dinámicos e innovadores y siendo responsable de:
+Diseñar y construir sistemas de remediación autónoma de vulnerabilidades, desde su detección hasta la implementación segura de soluciones en producción.
+Desarrollar una plataforma agéntica especializada en ingeniería de software y seguridad, capaz de planificar y ejecutar acciones, recuperarse de errores e iterar ante resultados fallidos.
+Diseñar guardrails y mecanismos para promocionar cambios automáticamente a producción, considerando las particularidades de cada aplicación y sus ambientes.
+Integrar agentes con repositorios, código, dependencias, builds, tests, Pull Requests, CI/CD y deployments para habilitar flujos de remediación end-to-end.
+Construir sistemas resilientes, observables y escalables para operar la automatización sobre miles de aplicaciones y repositorios.
+Integrar modelos de IA, herramientas y estrategias de agentes para ampliar los problemas que pueden resolverse de forma autónoma.
+
+¿Qué buscamos en vos?
+Poseer experiencia en desarrollo Backend con lenguajes como Golang, Python o similares, aplicados a servicios y sistemas de alto rendimiento.
+Contar con experiencia en el diseño de sistemas distribuidos, microservicios y APIs, y en la identificación de cuellos de botella y el diseño de soluciones escalables.
+Tener experiencia o interés en IA aplicada a ingeniería de software, agentes, LLMs y automatización de workflows complejos.
+Contar con conocimientos sobre CI/CD, testing, builds, deployments y ciclo de vida de aplicaciones.
+Tener conocimientos en técnicas de SRE y observabilidad para monitorear, diagnosticar y operar sistemas críticos. Además, es deseable contar con experiencia en bases de datos relacionales y no relacionales para gestionar estados y procesos distribuidos.
+
+¿Te animás a mover la frontera de lo que podemos automatizar con IA y dejar huella en la tecnología de América Latina?
+¡Postulate y sumate a nuestro propósito!Modalidad de trabajo híbrida. Site: Bogotá, Colombia.
