@@ -73,14 +73,21 @@ config:
 
   # --- talent_distiller_agent.settings.Settings: Shared MCP & Coordinator settings ---
   # URL of each extraction tool's candidate-skill-agent MCP server (streamable HTTP transport,
-  # must end in /mcp). All four default to the same single do-everything deployment's Service,
-  # e.g. "http://mcp-skills-extractor-agents/mcp". If that chart's tools are split one-per-release
-  # instead (see its README), point each at its own release's Service, e.g.
-  # "http://skill-agent-technical/mcp", "http://skill-agent-soft/mcp", etc.
-  skillAgentTechnicalMcpUrl: "http://127.0.0.1:8000/mcp"
-  skillAgentSoftMcpUrl: "http://127.0.0.1:8001/mcp"
-  skillAgentCertificationsMcpUrl: "http://127.0.0.1:8002/mcp"
-  skillAgentLanguagesMcpUrl: "http://127.0.0.1:8003/mcp"
+  # must end in /mcp). This pod reaches those servers as an in-cluster client, so these must be
+  # cluster-DNS Service names/ports (NOT the 127.0.0.1/localhost addresses from that chart's
+  # README, which only work for `kubectl port-forward` run on your own machine - using those
+  # here leaves every tool call unreachable, with the coordinator retrying silently until its
+  # revision guardrail gives up).
+  #
+  # Defaults below assume the mcp-skills-extractor-agents chart installed one release per tool
+  # (see its README) named skill-agent-technical/-soft/-certifications/-languages in this same
+  # namespace. If you installed it as a single do-everything release instead, point all four at
+  # that one Service, e.g. "http://mcp-skills-extractor-agents/mcp" (or your fullnameOverride).
+  # Cross-namespace, use the FQDN form: "http://skill-agent-technical.<namespace>.svc.cluster.local/mcp".
+  skillAgentTechnicalMcpUrl: "http://skill-agent-technical/mcp"
+  skillAgentSoftMcpUrl: "http://skill-agent-soft/mcp"
+  skillAgentCertificationsMcpUrl: "http://skill-agent-certifications/mcp"
+  skillAgentLanguagesMcpUrl: "http://skill-agent-languages/mcp"
   coordinatorModel: "us.anthropic.claude-haiku-4-5-20251001-v1:0"
   coordinatorMaxRevisionNumber: "10"
 
