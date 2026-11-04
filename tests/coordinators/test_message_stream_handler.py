@@ -24,9 +24,9 @@ from talent_distiller_agent.storage.redis_job_store import JobStatus
 RESUME_PATH = "resume/jane.pdf"
 JOB_POSTING_PATH = "job_posting/backend.pdf"
 
-EXTRACT_TECH_TOOL = "mcp__candidate-skill-agent__extract_technical_skills"
-EXTRACT_SOFT_TOOL = "mcp__candidate-skill-agent__extract_soft_skills"
-EXTRACT_LANG_TOOL = "mcp__candidate-skill-agent__extract_languages"
+EXTRACT_TECH_TOOL = "mcp__candidate-skill-agent-technical__extract_technical_skills"
+EXTRACT_SOFT_TOOL = "mcp__candidate-skill-agent-soft__extract_soft_skills"
+EXTRACT_LANG_TOOL = "mcp__candidate-skill-agent-languages__extract_languages"
 
 
 def test_extract_text_returns_empty_string_for_none():

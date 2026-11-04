@@ -16,7 +16,10 @@ class _FakeSettings:
     job_posting_processed_folder = "job_posting/processed"
     job_posting_failed_folder = "job_posting/failed"
     coordinator_max_revision_number = 3
-    skill_agent_mcp_url = "http://127.0.0.1:8000/mcp"
+    skill_agent_technical_mcp_url = "http://127.0.0.1:8000/mcp"
+    skill_agent_soft_mcp_url = "http://127.0.0.1:8000/mcp"
+    skill_agent_certifications_mcp_url = "http://127.0.0.1:8000/mcp"
+    skill_agent_languages_mcp_url = "http://127.0.0.1:8000/mcp"
 
 
 class _FakeClaudeSDKClient:
@@ -112,7 +115,7 @@ async def test_builds_options_queries_and_processes_the_stream_when_tools_are_al
     )
     expected_tracker = _FakeTracker(unified_result, status=status)
     guardrail_cls, guardrail_instances = _fake_guardrail_factory(
-        ["mcp__candidate-skill-agent__extract_technical_skills"],
+        ["mcp__candidate-skill-agent-technical__extract_technical_skills"],
         hooks={"PreToolUse": []},
     )
 
@@ -141,17 +144,17 @@ async def test_builds_options_queries_and_processes_the_stream_when_tools_are_al
     assert client.queried_with == (
         "<resume_path>resume/jane.pdf</resume_path>\n"
         "<resume_content>\nraw resume text\n</resume_content>\n"
-        "<pending_tools>mcp__candidate-skill-agent__extract_technical_skills</pending_tools>"
+        "<pending_tools>mcp__candidate-skill-agent-technical__extract_technical_skills</pending_tools>"
     )
     assert client.options.model == "model-x"
     assert client.options.env == {"FOO": "bar"}
     assert client.options.system_prompt == coordinator_module.RESUME_COORDINATOR_ORCHESTRATION_PROMPT
-    assert client.options.allowed_tools == ["mcp__candidate-skill-agent__extract_technical_skills"]
+    assert client.options.allowed_tools == ["mcp__candidate-skill-agent-technical__extract_technical_skills"]
     assert client.options.mcp_servers == {
-        coordinator_module.SKILL_AGENT_SERVER_NAME: {
-            "type": "http",
-            "url": "http://127.0.0.1:8000/mcp",
-        }
+        "candidate-skill-agent-technical": {"type": "http", "url": "http://127.0.0.1:8000/mcp"},
+        "candidate-skill-agent-soft": {"type": "http", "url": "http://127.0.0.1:8000/mcp"},
+        "candidate-skill-agent-certifications": {"type": "http", "url": "http://127.0.0.1:8000/mcp"},
+        "candidate-skill-agent-languages": {"type": "http", "url": "http://127.0.0.1:8000/mcp"},
     }
     assert client.options.hooks == {"PreToolUse": []}
 
@@ -173,7 +176,7 @@ async def test_omits_resume_content_and_includes_missing_fields_for_a_job_postin
     )
     tracker = _FakeTracker(unified_result, status=status)
     guardrail_cls, guardrail_instances = _fake_guardrail_factory(
-        ["mcp__candidate-skill-agent__extract_languages"]
+        ["mcp__candidate-skill-agent-languages__extract_languages"]
     )
 
     created_clients: list[_FakeClaudeSDKClient] = []
@@ -200,7 +203,7 @@ async def test_omits_resume_content_and_includes_missing_fields_for_a_job_postin
     client = created_clients[0]
     assert client.queried_with == (
         "<job_posting_path>job_posting/job.pdf</job_posting_path>\n"
-        "<pending_tools>mcp__candidate-skill-agent__extract_languages</pending_tools>\n"
+        "<pending_tools>mcp__candidate-skill-agent-languages__extract_languages</pending_tools>\n"
         "<missing_fields>desirable_languages</missing_fields>"
     )
     assert client.options.system_prompt == coordinator_module.JOB_POSTING_COORDINATOR_ORCHESTRATION_PROMPT
@@ -216,7 +219,7 @@ async def test_records_an_error_and_raises_when_extracted_text_is_empty(
         resume_path="resume/jane.pdf", revision_number=1, has_content=False, missing_fields=["languages"]
     )
     tracker = _FakeTracker(unified_result, status=status)
-    guardrail_cls, guardrail_instances = _fake_guardrail_factory(["mcp__candidate-skill-agent__extract_languages"])
+    guardrail_cls, guardrail_instances = _fake_guardrail_factory(["mcp__candidate-skill-agent-languages__extract_languages"])
 
     def fail_if_called(*args, **kwargs):
         raise AssertionError("ClaudeSDKClient must not be constructed")
@@ -268,7 +271,7 @@ async def test_logs_and_still_returns_the_unified_result_when_the_agent_turn_rai
     )
     tracker = _FakeTracker(unified_result, status=status)
     guardrail_cls, guardrail_instances = _fake_guardrail_factory(
-        ["mcp__candidate-skill-agent__extract_languages"]
+        ["mcp__candidate-skill-agent-languages__extract_languages"]
     )
 
     def boom(*args, **kwargs):

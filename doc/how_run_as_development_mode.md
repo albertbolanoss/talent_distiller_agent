@@ -85,7 +85,7 @@ cp .env.example .env
 | `TALENT_DISTILLER_AGENT_JOB_POSTING_MAX_FILES_PER_BATCH` | Max job posting files processed per polling batch. Defaults to `3`. |
 | `TALENT_DISTILLER_AGENT_JOB_POSTING_PROCESSED_FOLDER` | Folder processed job postings are moved to. Defaults to `<JOB_POSTING_DIR>/processed`. |
 | `TALENT_DISTILLER_AGENT_JOB_POSTING_FAILED_FOLDER` | Folder job postings are moved to once `COORDINATOR_MAX_REVISION_NUMBER` is exceeded. Defaults to `<JOB_POSTING_DIR>/failed`. |
-| `TALENT_DISTILLER_AGENT_SKILL_AGENT_MCP_URL` | URL of the `candidate-skill-agent` MCP server (streamable HTTP, must end in `/mcp`). Defaults to `http://127.0.0.1:8000/mcp`. |
+| `TALENT_DISTILLER_AGENT_SKILL_AGENT_TECHNICAL_MCP_URL` / `_SOFT_MCP_URL` / `_CERTIFICATIONS_MCP_URL` / `_LANGUAGES_MCP_URL` | Per-tool `candidate-skill-agent` MCP server URL (streamable HTTP, must end in `/mcp`). All four default to `http://127.0.0.1:8000/mcp`; override one independently only if that tool is split off onto its own server. |
 | `TALENT_DISTILLER_AGENT_COORDINATOR_MODEL` | Model used by the coordinator agent. Defaults to `us.anthropic.claude-haiku-4-5-20251001-v1:0`. |
 | `TALENT_DISTILLER_AGENT_COORDINATOR_MAX_REVISION_NUMBER` | Max extraction revisions before a file is marked failed. Defaults to `3`. |
 | `TALENT_DISTILLER_AGENT_REDIS_HOST` | Redis host for the resume-extraction job store. Defaults to `localhost`. |

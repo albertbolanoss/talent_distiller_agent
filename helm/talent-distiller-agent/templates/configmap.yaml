@@ -26,7 +26,10 @@ data:
   TALENT_DISTILLER_AGENT_JOB_POSTING_FAILED_FOLDER: {{ .Values.config.jobPostingFailedFolder | quote }}
 
   # --- talent_distiller_agent.settings.Settings: Shared MCP & Coordinator settings ---
-  TALENT_DISTILLER_AGENT_SKILL_AGENT_MCP_URL: {{ .Values.config.skillAgentMcpUrl | quote }}
+  TALENT_DISTILLER_AGENT_SKILL_AGENT_TECHNICAL_MCP_URL: {{ .Values.config.skillAgentTechnicalMcpUrl | quote }}
+  TALENT_DISTILLER_AGENT_SKILL_AGENT_SOFT_MCP_URL: {{ .Values.config.skillAgentSoftMcpUrl | quote }}
+  TALENT_DISTILLER_AGENT_SKILL_AGENT_CERTIFICATIONS_MCP_URL: {{ .Values.config.skillAgentCertificationsMcpUrl | quote }}
+  TALENT_DISTILLER_AGENT_SKILL_AGENT_LANGUAGES_MCP_URL: {{ .Values.config.skillAgentLanguagesMcpUrl | quote }}
   TALENT_DISTILLER_AGENT_COORDINATOR_MODEL: {{ .Values.config.coordinatorModel | quote }}
   TALENT_DISTILLER_AGENT_COORDINATOR_MAX_REVISION_NUMBER: {{ .Values.config.coordinatorMaxRevisionNumber | quote }}
 

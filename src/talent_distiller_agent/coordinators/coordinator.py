@@ -13,10 +13,7 @@ from labs_agent_lib import (
 )
 
 from talent_distiller_agent.guardrails import CoordinatorGuardrail
-from talent_distiller_agent.mcp_client import (
-    SKILL_AGENT_SERVER_NAME,
-    get_skill_agent_mcp_server,
-)
+from talent_distiller_agent.mcp_client import get_skill_agent_mcp_servers
 from talent_distiller_agent.prompts import (
     JOB_POSTING_COORDINATOR_ORCHESTRATION_PROMPT,
     RESUME_COORDINATOR_ORCHESTRATION_PROMPT,
@@ -107,7 +104,7 @@ async def run_coordinator(
                     model=settings.coordinator_model,
                     env=agent_env.env,
                     setting_sources=[],
-                    mcp_servers={SKILL_AGENT_SERVER_NAME: get_skill_agent_mcp_server(settings)},
+                    mcp_servers=get_skill_agent_mcp_servers(settings),
                     allowed_tools=allowed_tools,
                     tools=[],
                     hooks=guardrail.build_sdk_hooks(

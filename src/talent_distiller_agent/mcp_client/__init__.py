@@ -1,15 +1,8 @@
-"""MCP client wiring for the external candidate-skill-agent HTTP server."""
+"""MCP client wiring for the external candidate-skill-agent HTTP server(s)."""
 
-from .skill_agent import (
-    EXTRACTION_TOOL_TO_FIELD,
-    READ_DOCUMENT_TOOL_NAME,
-    SKILL_AGENT_SERVER_NAME,
-    get_skill_agent_mcp_server,
-)
+from .skill_agent import EXTRACTION_TOOL_TO_FIELD, get_skill_agent_mcp_servers
 
 __all__ = [
     "EXTRACTION_TOOL_TO_FIELD",
-    "READ_DOCUMENT_TOOL_NAME",
-    "SKILL_AGENT_SERVER_NAME",
-    "get_skill_agent_mcp_server",
+    "get_skill_agent_mcp_servers",
 ]
