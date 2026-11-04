@@ -140,8 +140,8 @@ async def test_pre_execution_hook_returns_deduplicated_tools_for_missing_fields(
     allowed_tools = await guardrail.pre_execution_hook(RESUME_PATH)
 
     assert allowed_tools == [
-        "mcp__candidate-skill-agent__extract_technical_skills",
-        "mcp__candidate-skill-agent__extract_languages",
+        "mcp__candidate-skill-agent-technical__extract_technical_skills",
+        "mcp__candidate-skill-agent-languages__extract_languages",
     ]
 
 
@@ -160,7 +160,7 @@ async def test_pre_execution_hook_maps_desirable_fields_to_their_base_mcp_tool(
 
     allowed_tools = await guardrail.pre_execution_hook(JOB_POSTING_PATH)
 
-    assert allowed_tools == ["mcp__candidate-skill-agent__extract_languages"]
+    assert allowed_tools == ["mcp__candidate-skill-agent-languages__extract_languages"]
 
 
 async def test_post_execution_hook_marks_processed_when_completed(monkeypatch: pytest.MonkeyPatch):
@@ -218,10 +218,10 @@ def test_build_sdk_hooks_registers_a_single_pre_tool_use_matcher_for_extraction_
     matcher = hooks["PreToolUse"][0]
     assert isinstance(matcher.matcher, str)
     assert set(matcher.matcher.split("|")) == {
-        "mcp__candidate-skill-agent__extract_technical_skills",
-        "mcp__candidate-skill-agent__extract_soft_skills",
-        "mcp__candidate-skill-agent__extract_certifications",
-        "mcp__candidate-skill-agent__extract_languages",
+        "mcp__candidate-skill-agent-technical__extract_technical_skills",
+        "mcp__candidate-skill-agent-soft__extract_soft_skills",
+        "mcp__candidate-skill-agent-certifications__extract_certifications",
+        "mcp__candidate-skill-agent-languages__extract_languages",
     }
     assert len(matcher.hooks) == 1
 
@@ -234,7 +234,7 @@ async def test_build_sdk_hooks_denies_when_resume_content_is_not_yet_in_redis():
     hook_fn = guardrail.build_sdk_hooks(RESUME_PATH)["PreToolUse"][0].hooks[0]
 
     result = await hook_fn(
-        {"tool_name": "mcp__candidate-skill-agent__extract_languages"}, "tool-use-1", {"signal": None}
+        {"tool_name": "mcp__candidate-skill-agent-languages__extract_languages"}, "tool-use-1", {"signal": None}
     )
 
     output = result["hookSpecificOutput"]
@@ -253,7 +253,7 @@ async def test_build_sdk_hooks_uses_the_custom_formatted_tag_in_the_deny_reason(
     ][0].hooks[0]
 
     result = await hook_fn(
-        {"tool_name": "mcp__candidate-skill-agent__extract_languages"}, "tool-use-1", {"signal": None}
+        {"tool_name": "mcp__candidate-skill-agent-languages__extract_languages"}, "tool-use-1", {"signal": None}
     )
 
     output = result["hookSpecificOutput"]
@@ -299,7 +299,7 @@ async def test_build_sdk_hooks_allows_once_content_appears_after_a_short_wait(
 
     hook_fn = guardrail.build_sdk_hooks(RESUME_PATH)["PreToolUse"][0].hooks[0]
     result = await hook_fn(
-        {"tool_name": "mcp__candidate-skill-agent__extract_languages"}, "tool-use-1", {"signal": None}
+        {"tool_name": "mcp__candidate-skill-agent-languages__extract_languages"}, "tool-use-1", {"signal": None}
     )
 
     assert result == {}
@@ -314,7 +314,7 @@ async def test_build_sdk_hooks_denies_a_duplicate_call_for_an_already_checkpoint
     hook_fn = guardrail.build_sdk_hooks(RESUME_PATH)["PreToolUse"][0].hooks[0]
 
     result = await hook_fn(
-        {"tool_name": "mcp__candidate-skill-agent__extract_languages"}, "tool-use-1", {"signal": None}
+        {"tool_name": "mcp__candidate-skill-agent-languages__extract_languages"}, "tool-use-1", {"signal": None}
     )
 
     output = result["hookSpecificOutput"]
@@ -331,7 +331,7 @@ async def test_build_sdk_hooks_denies_a_duplicate_call_when_only_the_desirable_f
     hook_fn = guardrail.build_sdk_hooks(JOB_POSTING_PATH)["PreToolUse"][0].hooks[0]
 
     result = await hook_fn(
-        {"tool_name": "mcp__candidate-skill-agent__extract_languages"}, "tool-use-1", {"signal": None}
+        {"tool_name": "mcp__candidate-skill-agent-languages__extract_languages"}, "tool-use-1", {"signal": None}
     )
 
     output = result["hookSpecificOutput"]
@@ -348,7 +348,7 @@ async def test_build_sdk_hooks_allows_a_call_for_a_still_missing_field():
     hook_fn = guardrail.build_sdk_hooks(RESUME_PATH)["PreToolUse"][0].hooks[0]
 
     result = await hook_fn(
-        {"tool_name": "mcp__candidate-skill-agent__extract_languages"}, "tool-use-1", {"signal": None}
+        {"tool_name": "mcp__candidate-skill-agent-languages__extract_languages"}, "tool-use-1", {"signal": None}
     )
 
     assert result == {}

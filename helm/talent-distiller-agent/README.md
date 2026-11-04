@@ -108,7 +108,7 @@ Then install the chart, pointing it at the Redis instance from step 2:
 
 ```sh
 # Install the chart
-helm install talent-distiller-agent ./helm/talent-distiller-agent --set secrets.portkeyApiKey="" --set config.resumePollIntervalSeconds="30" --set config.redisHost="redis-master" --set secrets.redisPassword="" --set replicaCount="3"
+helm install talent-distiller-agent ./helm/talent-distiller-agent --set secrets.portkeyApiKey="3S0UaHK0QG6bRMeSc4wIql2BGPR8" --set config.resumePollIntervalSeconds="30" --set config.redisHost="redis-master" --set secrets.redisPassword="1l0VlKnAzzFGhQ7WHGREy0gD" --set replicaCount="1"
 
 # ...or upgrade an existing install, overriding a value
 helm upgrade talent-distiller-agent ./helm/talent-distiller-agent --set secrets.portkeyApiKey="" --set config.resumePollIntervalSeconds="30" --set config.redisHost="redis-master" --set secrets.redisPassword="<password from step 2>" --set replicaCount="3"
@@ -124,16 +124,16 @@ The `Service` is `NodePort` by default (switch `service.type` to `ClusterIP` + a
 
 **port-forward to localhost (any cluster):**
 ```sh
-kubectl port-forward svc/talent-distiller-agent 8080:80
+kubectl port-forward svc/talent-distiller-agent 8084:80
 # then open http://localhost:8080
 ```
 
 ## 5. Execute the upload endpoints
 
 ```sh
-curl -F "file=@document_samples/resume_sample.txt" http://localhost:8080/resume
+curl -F "file=@document_samples/resume_sample.txt" http://localhost:8084/resume
 
-curl -F "file=@document_samples/job_posting_sample.txt" http://localhost:8080/job_posting
+curl -F "file=@document_samples/job_posting_sample.txt" http://localhost:8084/job_posting
 ```
 
 ## 6. Install mcp_skills_extractor_agents 

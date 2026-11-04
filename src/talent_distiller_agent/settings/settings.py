@@ -27,7 +27,13 @@ class Settings(BaseSettings):
     job_posting_failed_folder: str | None = None
 
     # Shared MCP & Coordinator settings
-    skill_agent_mcp_url: str = "http://127.0.0.1:8000/mcp"
+    # Each extraction tool's MCP server URL. All four default to the same single
+    # do-everything server; override one independently when that tool is split off onto
+    # its own release/pod instead (see mcp-skills-extractor-agents' Helm chart README).
+    skill_agent_technical_mcp_url: str = "http://127.0.0.1:8000/mcp"
+    skill_agent_soft_mcp_url: str = "http://127.0.0.1:8000/mcp"
+    skill_agent_certifications_mcp_url: str = "http://127.0.0.1:8000/mcp"
+    skill_agent_languages_mcp_url: str = "http://127.0.0.1:8000/mcp"
     coordinator_model: str = "us.anthropic.claude-haiku-4-5-20251001-v1:0"
     coordinator_max_revision_number: int = 3
 

@@ -72,10 +72,15 @@ config:
   jobPostingFailedFolder: ""
 
   # --- talent_distiller_agent.settings.Settings: Shared MCP & Coordinator settings ---
-  # URL of the candidate-skill-agent MCP server (streamable HTTP transport, must end in /mcp).
-  # Point this at the in-cluster Service exposing that server, e.g.
-  # "http://candidate-skill-agent:8000/mcp".
-  skillAgentMcpUrl: "http://127.0.0.1:8000/mcp"
+  # URL of each extraction tool's candidate-skill-agent MCP server (streamable HTTP transport,
+  # must end in /mcp). All four default to the same single do-everything deployment's Service,
+  # e.g. "http://mcp-skills-extractor-agents/mcp". If that chart's tools are split one-per-release
+  # instead (see its README), point each at its own release's Service, e.g.
+  # "http://skill-agent-technical/mcp", "http://skill-agent-soft/mcp", etc.
+  skillAgentTechnicalMcpUrl: "http://127.0.0.1:8000/mcp"
+  skillAgentSoftMcpUrl: "http://127.0.0.1:8001/mcp"
+  skillAgentCertificationsMcpUrl: "http://127.0.0.1:8002/mcp"
+  skillAgentLanguagesMcpUrl: "http://127.0.0.1:8003/mcp"
   coordinatorModel: "us.anthropic.claude-haiku-4-5-20251001-v1:0"
   coordinatorMaxRevisionNumber: "10"
 
