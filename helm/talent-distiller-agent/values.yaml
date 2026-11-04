@@ -2,7 +2,7 @@ replicaCount: 3
 
 image:
   repository: luigisamurai/talent-distiller-agent
-  tag: "0.1.0"
+  tag: "0.1.1"
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
