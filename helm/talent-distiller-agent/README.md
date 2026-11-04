@@ -24,9 +24,9 @@ docker build -t talent-distiller-agent:local .
 docker run --rm -p 8080:8080 --env-file .env talent-distiller-agent:local
 
 # Build and publish to a registry
-docker build -t talent-distiller-agent:0.1.0 .
-docker tag talent-distiller-agent:0.1.0 luigisamurai/talent-distiller-agent:0.1.0
-docker push luigisamurai/talent-distiller-agent:0.1.0
+docker build -t talent-distiller-agent:0.1.2 .
+docker tag talent-distiller-agent:0.1.2 luigisamurai/talent-distiller-agent:0.1.2
+docker push luigisamurai/talent-distiller-agent:0.1.2
 ```
 
 The image's entrypoint is `talent-distiller-agent-api` (HTTP API + background loop).
@@ -108,10 +108,10 @@ Then install the chart, pointing it at the Redis instance from step 2:
 
 ```sh
 # Install the chart
-helm install talent-distiller-agent ./helm/talent-distiller-agent --set secrets.portkeyApiKey="3S0UaHK0QG6bRMeSc4wIql2BGPR8" --set config.resumePollIntervalSeconds="30" --set config.redisHost="redis-master" --set secrets.redisPassword="1l0VlKnAzzFGhQ7WHGREy0gD" --set replicaCount="1"
+helm install talent-distiller-agent ./helm/talent-distiller-agent --set secrets.portkeyApiKey="" --set config.resumePollIntervalSeconds="30" --set config.redisHost="redis-master" --set secrets.redisPassword="" --set replicaCount="1" --set image.tag="0.1.2"
 
 # ...or upgrade an existing install, overriding a value
-helm upgrade talent-distiller-agent ./helm/talent-distiller-agent --set secrets.portkeyApiKey="" --set config.resumePollIntervalSeconds="30" --set config.redisHost="redis-master" --set secrets.redisPassword="<password from step 2>" --set replicaCount="3"
+helm upgrade talent-distiller-agent ./helm/talent-distiller-agent --set secrets.portkeyApiKey="" --set config.resumePollIntervalSeconds="30" --set config.redisHost="redis-master" --set secrets.redisPassword="<password from step 2>" --set replicaCount="1"  --set image.tag="0.1.2"
 
 # Check the pods came up
 kubectl get pods -l app.kubernetes.io/instance=talent-distiller-agent
