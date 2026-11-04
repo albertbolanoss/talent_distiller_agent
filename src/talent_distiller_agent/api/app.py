@@ -1,12 +1,12 @@
-"""Starlette app: the resume-upload API plus the in-process resume-processing loop.
+"""Starlette app: the resume/job-posting upload API plus the in-process processing loop.
 
-Both run in the same process so that a resume uploaded to a pod is processed by that
+Both run in the same process so that a document uploaded to a pod is processed by that
 same pod's poll loop, with no shared storage required across replicas.
 """
 
 import asyncio
 import contextlib
-from collections.abc import AsyncIterator
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 from starlette.applications import Starlette
@@ -15,6 +15,7 @@ from starlette.responses import JSONResponse
 from starlette.routing import Route
 
 from ..main import start_process
+from .job_postings import upload_job_posting
 from .resumes import upload_resume
 
 
@@ -24,8 +25,8 @@ async def health(_request: Request) -> JSONResponse:
 
 
 @asynccontextmanager
-async def lifespan(_app: Starlette) -> AsyncIterator[None]:
-    """Runs the resume-processing poll loop for the lifetime of the app."""
+async def lifespan(_app: Starlette) -> AsyncGenerator[None]:
+    """Runs the resume/job-posting processing poll loop for the lifetime of the app."""
     task = asyncio.create_task(start_process())
     try:
         yield
@@ -39,7 +40,8 @@ def create_app() -> Starlette:
     return Starlette(
         routes=[
             Route("/healthz", health, methods=["GET"]),
-            Route("/resumes", upload_resume, methods=["POST"]),
+            Route("/resume", upload_resume, methods=["POST"]),
+            Route("/job_posting", upload_job_posting, methods=["POST"]),
         ],
         lifespan=lifespan,
     )

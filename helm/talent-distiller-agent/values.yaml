@@ -1,4 +1,4 @@
-replicaCount: 1
+replicaCount: 3
 
 image:
   repository: luigisamurai/talent-distiller-agent
@@ -41,21 +41,49 @@ resumeVolume:
   # resume folder ever needs to be shared across pods.
   sizeLimit: 256Mi
 
+jobPostingVolume:
+  # Same ephemeral, per-pod emptyDir tradeoff as resumeVolume, but for job_posting_dir.
+  sizeLimit: 256Mi
+
 config:
+  # --- labs_agent_lib.AgentSettings (rendered with the LABS_AGENT_LIB_ prefix) ---
   provider: portkey
   logLevel: INFO
-  resumeDir: /app/resume
-  resumePollIntervalSeconds: "300"
-  resumeMaxFilesPerBatch: "3"
   disablePromptCaching: "false"
-  # URL of the candidate-skill-agent MCP server (streamable HTTP transport, must end in /mcp).
-  # Point this at the in-cluster Service exposing that server, e.g.
-  # "http://candidate-skill-agent:8000/mcp".
-  skillAgentMcpUrl: "http://127.0.0.1:8000/mcp"
   # Portkey provider/credential alias (e.g. "aws-bedrock-use2") - an identifier, not a credential,
   # so it lives in the ConfigMap rather than the Secret below. Optional; leave empty if your
   # Portkey workspace doesn't route through a specific virtual key.
   portkeyVirtual: "aws-bedrock-use2"
+
+  # --- talent_distiller_agent.settings.Settings: Resume settings ---
+  resumeDir: /app/resume
+  resumePollIntervalSeconds: "300"
+  resumeMaxFilesPerBatch: "3"
+  # Leave empty to default to "<resumeDir>/processed" / "<resumeDir>/failed".
+  coordinatorProcessedFolder: ""
+  coordinatorFailedFolder: ""
+
+  # --- talent_distiller_agent.settings.Settings: Job Posting settings ---
+  jobPostingDir: /app/job_posting
+  jobPostingPollIntervalSeconds: "300"
+  jobPostingMaxFilesPerBatch: "3"
+  # Leave empty to default to "<jobPostingDir>/processed" / "<jobPostingDir>/failed".
+  jobPostingProcessedFolder: ""
+  jobPostingFailedFolder: ""
+
+  # --- talent_distiller_agent.settings.Settings: Shared MCP & Coordinator settings ---
+  # URL of the candidate-skill-agent MCP server (streamable HTTP transport, must end in /mcp).
+  # Point this at the in-cluster Service exposing that server, e.g.
+  # "http://candidate-skill-agent:8000/mcp".
+  skillAgentMcpUrl: "http://127.0.0.1:8000/mcp"
+  coordinatorModel: "us.anthropic.claude-haiku-4-5-20251001-v1:0"
+  coordinatorMaxRevisionNumber: "10"
+
+  # --- talent_distiller_agent.settings.Settings: Redis ---
+  # This chart doesn't deploy Redis itself - point this at your own Redis Service/host
+  # (e.g. "redis-master.default.svc.cluster.local") before deploying to a real cluster.
+  redisHost: "localhost"
+  redisDb: "0"
 
 # Placeholder credentials only - do NOT put real secrets here or commit real values.
 # Override at install time instead, e.g.:
@@ -65,3 +93,4 @@ config:
 secrets:
   portkeyApiKey: ""
   anthropicApiKey: ""
+  redisPassword: ""

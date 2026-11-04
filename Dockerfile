@@ -36,7 +36,7 @@ ENV PATH="/app/.venv/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
     PORT=8080
 
-RUN mkdir -p /app/resume && chown appuser:appuser /app/resume
+RUN mkdir -p /app/resume /app/job_posting && chown appuser:appuser /app/resume /app/job_posting
 
 USER appuser
 
