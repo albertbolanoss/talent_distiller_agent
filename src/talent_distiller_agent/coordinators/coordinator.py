@@ -14,6 +14,7 @@ from labs_agent_lib import (
 
 from talent_distiller_agent.guardrails import CoordinatorGuardrail
 from talent_distiller_agent.mcp_client import get_skill_agent_mcp_servers
+from talent_distiller_agent.observability import AgentTranscriptWriter, PromptLogWriter
 from talent_distiller_agent.prompts import (
     JOB_POSTING_COORDINATOR_ORCHESTRATION_PROMPT,
     RESUME_COORDINATOR_ORCHESTRATION_PROMPT,
@@ -25,7 +26,7 @@ from talent_distiller_agent.storage import (
     RedisJobStore,
 )
 
-from .message_stream_handler import process_coordinator_stream
+from .message_stream_handler import AGENT_NAME, process_coordinator_stream
 
 logger = get_logger(__name__)
 MODULE = "[Coordinator]"
@@ -37,6 +38,7 @@ class CoordinatorSpec:
 
     doc_type: DocumentType
     system_prompt: str
+    system_prompt_name: str
     path_tag: str
     content_tag: str
     formatted_tag: str
@@ -46,6 +48,7 @@ COORDINATOR_SPECS: dict[DocumentType, CoordinatorSpec] = {
     DocumentType.RESUME: CoordinatorSpec(
         doc_type=DocumentType.RESUME,
         system_prompt=RESUME_COORDINATOR_ORCHESTRATION_PROMPT,
+        system_prompt_name="resume_coordinator_orchestration",
         path_tag="resume_path",
         content_tag="resume_content",
         formatted_tag="formatted_resume",
@@ -53,6 +56,7 @@ COORDINATOR_SPECS: dict[DocumentType, CoordinatorSpec] = {
     DocumentType.JOB_POSTING: CoordinatorSpec(
         doc_type=DocumentType.JOB_POSTING,
         system_prompt=JOB_POSTING_COORDINATOR_ORCHESTRATION_PROMPT,
+        system_prompt_name="job_posting_coordinator_orchestration",
         path_tag="job_posting_path",
         content_tag="job_posting_content",
         formatted_tag="formatted_job_posting",
@@ -77,7 +81,10 @@ async def run_coordinator(
 
             if allowed_tools:
                 status = await tracker.get_status(file_path)
-                prompt_parts = [f"<{spec.path_tag}>{file_path}</{spec.path_tag}>"]
+                prompt_parts = [
+                    f"<{spec.path_tag}>{file_path}</{spec.path_tag}>",
+                    f"<correlation_id>{status.correlation_id or ''}</correlation_id>",
+                ]
 
                 if not status.has_content:
                     raw_text = extract_text(file_path)
@@ -123,12 +130,33 @@ async def run_coordinator(
                     status.missing_fields,
                 )
 
+                correlation_id = status.correlation_id or ""
+                prompt_log = PromptLogWriter(settings)
+                transcript = AgentTranscriptWriter(settings)
+                prompt_log.log_prompt(
+                    correlation_id=correlation_id,
+                    agent=AGENT_NAME,
+                    model=settings.coordinator_model,
+                    system_prompt_name=spec.system_prompt_name,
+                    user_prompt=prompt,
+                )
+                transcript.session_start(
+                    correlation_id,
+                    AGENT_NAME,
+                    model=settings.coordinator_model,
+                    system_prompt=spec.system_prompt,
+                    user_prompt=prompt,
+                    allowed_tools=allowed_tools,
+                )
+
                 async with ClaudeSDKClient(options=options) as client:
                     await client.query(prompt)
                     stop_reason, session_id = await process_coordinator_stream(
                         client=client,
                         tracker=tracker,
                         resume_path=file_path,
+                        correlation_id=correlation_id,
+                        transcript=transcript,
                     )
 
                 await guardrail.post_execution_hook(

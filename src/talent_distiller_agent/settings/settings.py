@@ -37,10 +37,15 @@ class Settings(BaseSettings):
     coordinator_model: str = "us.anthropic.claude-haiku-4-5-20251001-v1:0"
     coordinator_max_revision_number: int = 3
 
-    # Redis 
+    # Redis
     redis_host: str = "localhost"
     redis_password: SecretStr = SecretStr("")
     redis_db: int = 0
+
+    # Prompt log & agent transcript observability
+    observability_enabled: bool = True
+    prompt_log_dir: str = "documentation/prompt_log"
+    agent_transcript_dir: str = "documentation/agent_transcript"
 
     @model_validator(mode="after")
     def _resolve_default_folders(self) -> "Settings":

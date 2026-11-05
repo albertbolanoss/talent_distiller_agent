@@ -21,3 +21,7 @@ htmlcov/
 # Resume
 resume/
 job_posting/
+
+# Prompt log / agent transcript runtime artifacts - may contain candidate PII, never commit
+# documentation/prompt_log/*.jsonl
+# documentation/agent_transcript/*.jsonl

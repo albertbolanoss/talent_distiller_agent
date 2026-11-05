@@ -20,6 +20,9 @@ class _FakeSettings:
     skill_agent_soft_mcp_url = "http://127.0.0.1:8000/mcp"
     skill_agent_certifications_mcp_url = "http://127.0.0.1:8000/mcp"
     skill_agent_languages_mcp_url = "http://127.0.0.1:8000/mcp"
+    observability_enabled = False
+    prompt_log_dir = "unused"
+    agent_transcript_dir = "unused"
 
 
 class _FakeClaudeSDKClient:
@@ -124,7 +127,9 @@ async def test_builds_options_queries_and_processes_the_stream_when_tools_are_al
         created_clients.append(client)
         return client
 
-    async def fake_process_coordinator_stream(client, tracker, resume_path: str):
+    async def fake_process_coordinator_stream(
+        client, tracker, resume_path: str, correlation_id: str = "", transcript=None
+    ):
         assert client is created_clients[-1]
         assert tracker is expected_tracker
         return "end_turn", "session-123"
@@ -143,6 +148,7 @@ async def test_builds_options_queries_and_processes_the_stream_when_tools_are_al
     client = created_clients[0]
     assert client.queried_with == (
         "<resume_path>resume/jane.pdf</resume_path>\n"
+        "<correlation_id></correlation_id>\n"
         "<resume_content>\nraw resume text\n</resume_content>\n"
         "<pending_tools>mcp__candidate-skill-agent-technical__extract_technical_skills</pending_tools>"
     )
@@ -186,7 +192,9 @@ async def test_omits_resume_content_and_includes_missing_fields_for_a_job_postin
         created_clients.append(client)
         return client
 
-    async def fake_process_coordinator_stream(client, tracker, resume_path: str):
+    async def fake_process_coordinator_stream(
+        client, tracker, resume_path: str, correlation_id: str = "", transcript=None
+    ):
         return "end_turn", "session-1"
 
     def fail_if_called(file_path: str) -> str:
@@ -203,6 +211,7 @@ async def test_omits_resume_content_and_includes_missing_fields_for_a_job_postin
     client = created_clients[0]
     assert client.queried_with == (
         "<job_posting_path>job_posting/job.pdf</job_posting_path>\n"
+        "<correlation_id></correlation_id>\n"
         "<pending_tools>mcp__candidate-skill-agent-languages__extract_languages</pending_tools>\n"
         "<missing_fields>desirable_languages</missing_fields>"
     )

@@ -35,3 +35,11 @@ def test_redis_settings_default_when_no_env_file():
     assert settings.redis_host == "localhost"
     assert settings.redis_password.get_secret_value() == ""
     assert settings.redis_db == 0
+
+
+def test_observability_settings_default_when_no_env_file():
+    settings = Settings(_env_file=None)
+
+    assert settings.observability_enabled is True
+    assert settings.prompt_log_dir == "documentation/prompt_log"
+    assert settings.agent_transcript_dir == "documentation/agent_transcript"
