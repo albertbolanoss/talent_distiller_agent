@@ -16,6 +16,7 @@ from claude_agent_sdk import (
 from labs_agent_lib import get_logger
 
 from talent_distiller_agent.mcp_client import EXTRACTION_TOOL_TO_FIELD
+from talent_distiller_agent.observability import AgentTranscriptWriter
 from talent_distiller_agent.storage import (
     DESIRABLE_PREFIX,
     DocumentType,
@@ -25,6 +26,7 @@ from talent_distiller_agent.storage import (
 
 logger = get_logger(__name__)
 MODULE = "[message_stream_handler]"
+AGENT_NAME = "coordinator"
 
 _FORMATTED_CONTENT_PATTERN = re.compile(
     r"<formatted_(?:resume|job_posting)>(.*?)</formatted_(?:resume|job_posting)>",
@@ -121,8 +123,13 @@ async def process_coordinator_stream(
     client: ClaudeSDKClient,
     tracker: RedisJobStore,
     resume_path: str,
+    correlation_id: str,
+    transcript: AgentTranscriptWriter,
 ) -> tuple[str | None, str | None]:
     """Drains `client.receive_response()`, persisting formatted content and each tool result in Redis.
+
+    Every assistant text block, tool call and tool result is also appended to the agent
+    transcript for `correlation_id` - see `documentation/prompt_log_and_agent_transcript.md`.
 
     Returns `(stop_reason, session_id)`.
     """
@@ -136,6 +143,7 @@ async def process_coordinator_stream(
             for block in message.content:
                 if isinstance(block, TextBlock):
                     logger.debug("%s Assistant text: %s", MODULE, block.text)
+                    transcript.assistant_text(correlation_id, AGENT_NAME, text=block.text)
                     formatted_content = _extract_formatted_content(block.text)
                     if formatted_content is not None:
                         if formatted_content:
@@ -172,6 +180,14 @@ async def process_coordinator_stream(
                         block.name,
                         target_field,
                     )
+                    transcript.tool_use(
+                        correlation_id,
+                        AGENT_NAME,
+                        tool_use_id=block.id,
+                        tool_name=block.name,
+                        target_field=target_field,
+                        tool_input=getattr(block, "input", None),
+                    )
 
         elif isinstance(message, UserMessage):
             content = message.content if isinstance(message.content, list) else []
@@ -183,6 +199,15 @@ async def process_coordinator_stream(
                     block.tool_use_id, ("unknown", "unknown")
                 )
                 extracted_text = _extract_text(block.content)
+                transcript.tool_result(
+                    correlation_id,
+                    AGENT_NAME,
+                    tool_use_id=block.tool_use_id,
+                    tool_name=tool_name,
+                    target_field=target_field,
+                    is_error=block.is_error,
+                    output=extracted_text,
+                )
 
                 if block.is_error:
                     logger.error(
@@ -218,6 +243,13 @@ async def process_coordinator_stream(
                 message.is_error,
                 stop_reason,
                 session_id,
+            )
+            transcript.session_end(
+                correlation_id,
+                AGENT_NAME,
+                session_id=session_id,
+                stop_reason=stop_reason,
+                is_error=message.is_error,
             )
 
     return stop_reason, session_id

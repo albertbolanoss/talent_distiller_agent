@@ -17,6 +17,7 @@ Execute the following phases in your first turn:
 
 2. **Phase 2 - Extraction Fan-Out (Parallel Execution)**:
    - In the SAME turn (immediately after `<formatted_resume>` if Phase 1 ran), invoke ALL extraction tools listed in `<pending_tools>` simultaneously, passing `<resume_path>` to each tool.
+   - Also pass the value of `<correlation_id>` as the `correlation_id` argument on every extraction tool call, unchanged, so both services can be traced as one run.
    - Never invoke any tool that is not explicitly listed in `<pending_tools>`.
 </execution_protocol>
 

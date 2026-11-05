@@ -18,11 +18,23 @@ from talent_distiller_agent.coordinators.message_stream_handler import (
     _is_desirable_tool_input,
     process_coordinator_stream,
 )
+from talent_distiller_agent.observability import AgentTranscriptWriter
 from talent_distiller_agent.storage import DocumentType
 from talent_distiller_agent.storage.redis_job_store import JobStatus
 
 RESUME_PATH = "resume/jane.pdf"
 JOB_POSTING_PATH = "job_posting/backend.pdf"
+CORRELATION_ID = "corr-1"
+
+
+class _DisabledObservabilitySettings:
+    """Keeps `AgentTranscriptWriter` a no-op so these Redis-focused tests stay unaffected."""
+
+    observability_enabled = False
+    agent_transcript_dir = "unused"
+
+
+_NOOP_TRANSCRIPT = AgentTranscriptWriter(_DisabledObservabilitySettings())
 
 EXTRACT_TECH_TOOL = "mcp__candidate-skill-agent-technical__extract_technical_skills"
 EXTRACT_SOFT_TOOL = "mcp__candidate-skill-agent-soft__extract_soft_skills"
@@ -155,7 +167,9 @@ async def test_captures_formatted_resume_content_from_a_text_block():
     ]
     tracker = _FakeTracker()
 
-    stop_reason, session_id = await process_coordinator_stream(_StubClient(messages), tracker, RESUME_PATH)
+    stop_reason, session_id = await process_coordinator_stream(
+        _StubClient(messages), tracker, RESUME_PATH, CORRELATION_ID, _NOOP_TRANSCRIPT
+    )
 
     assert tracker.contents == ["Jane Doe\nProfile"]
     assert stop_reason == "end_turn"
@@ -169,7 +183,9 @@ async def test_records_an_agent_error_for_an_empty_formatted_resume_block():
     ]
     tracker = _FakeTracker()
 
-    await process_coordinator_stream(_StubClient(messages), tracker, RESUME_PATH)
+    await process_coordinator_stream(
+        _StubClient(messages), tracker, RESUME_PATH, CORRELATION_ID, _NOOP_TRANSCRIPT
+    )
 
     assert tracker.contents == []
     assert tracker.errors == [("content", "Coordinator returned an empty formatted resume block.")]
@@ -184,7 +200,9 @@ async def test_records_an_agent_error_for_an_empty_formatted_job_posting_block()
     ]
     tracker = _FakeTracker(doc_type=DocumentType.JOB_POSTING)
 
-    await process_coordinator_stream(_StubClient(messages), tracker, JOB_POSTING_PATH)
+    await process_coordinator_stream(
+        _StubClient(messages), tracker, JOB_POSTING_PATH, CORRELATION_ID, _NOOP_TRANSCRIPT
+    )
 
     assert tracker.errors == [("content", "Coordinator returned an empty formatted job_posting block.")]
 
@@ -196,7 +214,9 @@ async def test_ignores_text_blocks_without_a_formatted_tag():
     ]
     tracker = _FakeTracker()
 
-    await process_coordinator_stream(_StubClient(messages), tracker, RESUME_PATH)
+    await process_coordinator_stream(
+        _StubClient(messages), tracker, RESUME_PATH, CORRELATION_ID, _NOOP_TRANSCRIPT
+    )
 
     assert tracker.contents == []
     assert tracker.errors == []
@@ -210,7 +230,9 @@ async def test_checkpoints_an_extraction_result_under_its_redis_field_for_a_resu
     ]
     tracker = _FakeTracker()
 
-    await process_coordinator_stream(_StubClient(messages), tracker, RESUME_PATH)
+    await process_coordinator_stream(
+        _StubClient(messages), tracker, RESUME_PATH, CORRELATION_ID, _NOOP_TRANSCRIPT
+    )
 
     assert tracker.results == [("soft_skills", '{"soft_skills": ["communication"]}')]
 
@@ -223,7 +245,9 @@ async def test_captures_an_errored_extraction_tool_result_as_an_agent_error():
     ]
     tracker = _FakeTracker()
 
-    await process_coordinator_stream(_StubClient(messages), tracker, RESUME_PATH)
+    await process_coordinator_stream(
+        _StubClient(messages), tracker, RESUME_PATH, CORRELATION_ID, _NOOP_TRANSCRIPT
+    )
 
     assert tracker.errors == [("technical_skills", "boom")]
     assert tracker.results == []
@@ -237,7 +261,9 @@ async def test_ignores_an_errored_result_from_an_unrecognized_tool():
     ]
     tracker = _FakeTracker()
 
-    await process_coordinator_stream(_StubClient(messages), tracker, RESUME_PATH)
+    await process_coordinator_stream(
+        _StubClient(messages), tracker, RESUME_PATH, CORRELATION_ID, _NOOP_TRANSCRIPT
+    )
 
     assert tracker.contents == []
     assert tracker.results == []
@@ -252,7 +278,9 @@ async def test_ignores_a_successful_result_from_an_unrecognized_tool():
     ]
     tracker = _FakeTracker()
 
-    await process_coordinator_stream(_StubClient(messages), tracker, RESUME_PATH)
+    await process_coordinator_stream(
+        _StubClient(messages), tracker, RESUME_PATH, CORRELATION_ID, _NOOP_TRANSCRIPT
+    )
 
     assert tracker.contents == []
     assert tracker.results == []
@@ -273,7 +301,9 @@ async def test_ignores_non_tool_result_blocks_and_string_only_user_messages():
     ]
     tracker = _FakeTracker()
 
-    stop_reason, session_id = await process_coordinator_stream(_StubClient(messages), tracker, RESUME_PATH)
+    stop_reason, session_id = await process_coordinator_stream(
+        _StubClient(messages), tracker, RESUME_PATH, CORRELATION_ID, _NOOP_TRANSCRIPT
+    )
 
     assert tracker.results == [("soft_skills", '{"soft_skills": []}')]
     assert stop_reason == "end_turn"
@@ -284,7 +314,9 @@ async def test_result_message_with_is_error_is_still_reported():
     messages = [_result_message(is_error=True, stop_reason="error", session_id="session-err")]
     tracker = _FakeTracker()
 
-    stop_reason, session_id = await process_coordinator_stream(_StubClient(messages), tracker, RESUME_PATH)
+    stop_reason, session_id = await process_coordinator_stream(
+        _StubClient(messages), tracker, RESUME_PATH, CORRELATION_ID, _NOOP_TRANSCRIPT
+    )
 
     assert stop_reason == "error"
     assert session_id == "session-err"
@@ -298,7 +330,9 @@ async def test_ignores_message_types_it_does_not_handle():
     ]
     tracker = _FakeTracker()
 
-    stop_reason, session_id = await process_coordinator_stream(_StubClient(messages), tracker, RESUME_PATH)
+    stop_reason, session_id = await process_coordinator_stream(
+        _StubClient(messages), tracker, RESUME_PATH, CORRELATION_ID, _NOOP_TRANSCRIPT
+    )
 
     assert stop_reason == "end_turn"
     assert session_id == "session-1"
@@ -307,7 +341,9 @@ async def test_ignores_message_types_it_does_not_handle():
 async def test_returns_all_none_for_an_empty_stream():
     tracker = _FakeTracker()
 
-    stop_reason, session_id = await process_coordinator_stream(_StubClient([]), tracker, RESUME_PATH)
+    stop_reason, session_id = await process_coordinator_stream(
+        _StubClient([]), tracker, RESUME_PATH, CORRELATION_ID, _NOOP_TRANSCRIPT
+    )
 
     assert (stop_reason, session_id) == (None, None)
 
@@ -319,7 +355,9 @@ async def test_last_result_message_wins_when_the_stream_has_more_than_one():
     ]
     tracker = _FakeTracker()
 
-    stop_reason, session_id = await process_coordinator_stream(_StubClient(messages), tracker, RESUME_PATH)
+    stop_reason, session_id = await process_coordinator_stream(
+        _StubClient(messages), tracker, RESUME_PATH, CORRELATION_ID, _NOOP_TRANSCRIPT
+    )
 
     assert stop_reason == "end_turn"
     assert session_id == "second"
@@ -333,7 +371,9 @@ async def test_resolves_the_mandatory_field_for_a_job_posting_when_it_is_still_m
     ]
     tracker = _FakeTracker(doc_type=DocumentType.JOB_POSTING, missing_fields=["languages", "desirable_languages"])
 
-    await process_coordinator_stream(_StubClient(messages), tracker, JOB_POSTING_PATH)
+    await process_coordinator_stream(
+        _StubClient(messages), tracker, JOB_POSTING_PATH, CORRELATION_ID, _NOOP_TRANSCRIPT
+    )
 
     assert tracker.results == [("languages", '{"languages": ["english"]}')]
 
@@ -349,7 +389,9 @@ async def test_resolves_the_desirable_field_when_the_tool_input_flags_it_as_desi
     ]
     tracker = _FakeTracker(doc_type=DocumentType.JOB_POSTING, missing_fields=["languages", "desirable_languages"])
 
-    await process_coordinator_stream(_StubClient(messages), tracker, JOB_POSTING_PATH)
+    await process_coordinator_stream(
+        _StubClient(messages), tracker, JOB_POSTING_PATH, CORRELATION_ID, _NOOP_TRANSCRIPT
+    )
 
     assert tracker.results == [("desirable_languages", '{"languages": ["french"]}')]
 
@@ -362,7 +404,9 @@ async def test_resolves_the_desirable_field_once_the_mandatory_field_is_already_
     ]
     tracker = _FakeTracker(doc_type=DocumentType.JOB_POSTING, missing_fields=["desirable_languages"])
 
-    await process_coordinator_stream(_StubClient(messages), tracker, JOB_POSTING_PATH)
+    await process_coordinator_stream(
+        _StubClient(messages), tracker, JOB_POSTING_PATH, CORRELATION_ID, _NOOP_TRANSCRIPT
+    )
 
     assert tracker.results == [("desirable_languages", '{"languages": ["german"]}')]
 
@@ -386,7 +430,9 @@ async def test_second_call_to_the_same_mandatory_field_within_a_turn_falls_back_
     ]
     tracker = _FakeTracker(doc_type=DocumentType.JOB_POSTING, missing_fields=["languages", "desirable_languages"])
 
-    await process_coordinator_stream(_StubClient(messages), tracker, JOB_POSTING_PATH)
+    await process_coordinator_stream(
+        _StubClient(messages), tracker, JOB_POSTING_PATH, CORRELATION_ID, _NOOP_TRANSCRIPT
+    )
 
     assert tracker.results == [
         ("languages", '{"languages": ["english"]}'),
@@ -405,7 +451,9 @@ async def test_records_an_agent_error_under_the_resolved_desirable_field_for_a_j
     ]
     tracker = _FakeTracker(doc_type=DocumentType.JOB_POSTING, missing_fields=["languages", "desirable_languages"])
 
-    await process_coordinator_stream(_StubClient(messages), tracker, JOB_POSTING_PATH)
+    await process_coordinator_stream(
+        _StubClient(messages), tracker, JOB_POSTING_PATH, CORRELATION_ID, _NOOP_TRANSCRIPT
+    )
 
     assert tracker.errors == [("desirable_languages", "boom")]
 
@@ -425,7 +473,9 @@ async def test_splits_a_composite_mandatory_desirable_json_payload_for_a_job_pos
     ]
     tracker = _FakeTracker(doc_type=DocumentType.JOB_POSTING, missing_fields=["languages", "desirable_languages"])
 
-    await process_coordinator_stream(_StubClient(messages), tracker, JOB_POSTING_PATH)
+    await process_coordinator_stream(
+        _StubClient(messages), tracker, JOB_POSTING_PATH, CORRELATION_ID, _NOOP_TRANSCRIPT
+    )
 
     assert tracker.results == [
         ("languages", '["english"]'),
@@ -448,7 +498,9 @@ async def test_splits_a_composite_required_desirable_json_payload_for_a_job_post
     ]
     tracker = _FakeTracker(doc_type=DocumentType.JOB_POSTING, missing_fields=["languages", "desirable_languages"])
 
-    await process_coordinator_stream(_StubClient(messages), tracker, JOB_POSTING_PATH)
+    await process_coordinator_stream(
+        _StubClient(messages), tracker, JOB_POSTING_PATH, CORRELATION_ID, _NOOP_TRANSCRIPT
+    )
 
     assert tracker.results == [
         ("languages", '["english"]'),
@@ -464,7 +516,9 @@ async def test_saves_a_dict_with_only_a_desirable_key_directly_without_splitting
     ]
     tracker = _FakeTracker(doc_type=DocumentType.JOB_POSTING, missing_fields=["languages", "desirable_languages"])
 
-    await process_coordinator_stream(_StubClient(messages), tracker, JOB_POSTING_PATH)
+    await process_coordinator_stream(
+        _StubClient(messages), tracker, JOB_POSTING_PATH, CORRELATION_ID, _NOOP_TRANSCRIPT
+    )
 
     assert tracker.results == [("languages", '{"desirable": ["french"]}')]
 
@@ -477,7 +531,9 @@ async def test_saves_a_non_json_payload_directly_for_a_job_posting():
     ]
     tracker = _FakeTracker(doc_type=DocumentType.JOB_POSTING, missing_fields=["languages", "desirable_languages"])
 
-    await process_coordinator_stream(_StubClient(messages), tracker, JOB_POSTING_PATH)
+    await process_coordinator_stream(
+        _StubClient(messages), tracker, JOB_POSTING_PATH, CORRELATION_ID, _NOOP_TRANSCRIPT
+    )
 
     assert tracker.results == [("languages", "not json")]
 
@@ -490,6 +546,8 @@ async def test_saves_a_json_array_payload_directly_for_a_job_posting():
     ]
     tracker = _FakeTracker(doc_type=DocumentType.JOB_POSTING, missing_fields=["languages", "desirable_languages"])
 
-    await process_coordinator_stream(_StubClient(messages), tracker, JOB_POSTING_PATH)
+    await process_coordinator_stream(
+        _StubClient(messages), tracker, JOB_POSTING_PATH, CORRELATION_ID, _NOOP_TRANSCRIPT
+    )
 
     assert tracker.results == [("languages", '["english"]')]

@@ -17,6 +17,7 @@ Follow these phases strictly in order:
 
 2. **Phase 2 - Extraction Fan-Out (Parallel Execution)**:
    - Once `<formatted_job_posting>` has been emitted (or immediately if Phase 1 was skipped), invoke ALL extraction tools listed in `<pending_tools>` simultaneously in a single turn, passing `<job_posting_path>` to each tool.
+   - Also pass the value of `<correlation_id>` as the `correlation_id` argument on every extraction tool call, unchanged, so both services can be traced as one run.
    - Never invoke any tool that is not explicitly listed in `<pending_tools>`.
 </execution_protocol>
 

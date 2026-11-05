@@ -76,6 +76,8 @@ async def test_init_or_get_state_creates_a_new_job_on_first_call():
 
     state = await store.init_or_get_state(RESUME_PATH)
 
+    correlation_id = state.pop("correlation_id")
+    assert len(correlation_id) == 32
     assert state == {
         "file_name": "Jane Doe.pdf",
         "file_path": RESUME_PATH,
@@ -205,6 +207,25 @@ async def test_save_session_and_completion_without_a_session_id_does_not_set_it(
     state = await store.redis.hgetall(store.get_job_key(RESUME_PATH))
     assert "session_id" not in state
     assert state["completed"] == "0"
+
+
+async def test_init_or_get_state_reuses_the_same_correlation_id_across_calls():
+    store = _store()
+
+    first = await store.init_or_get_state(RESUME_PATH)
+    await store.increment_attempts(RESUME_PATH)
+    second = await store.init_or_get_state(RESUME_PATH)
+
+    assert first["correlation_id"] == second["correlation_id"]
+
+
+async def test_get_status_surfaces_the_job_correlation_id():
+    store = _store()
+    state = await store.init_or_get_state(RESUME_PATH)
+
+    status = await store.get_status(RESUME_PATH)
+
+    assert status.correlation_id == state["correlation_id"]
 
 
 async def test_get_status_reports_has_content_false_for_a_brand_new_job():

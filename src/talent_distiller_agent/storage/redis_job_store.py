@@ -5,6 +5,7 @@ from enum import StrEnum
 from pathlib import Path
 from types import TracebackType
 from typing import Any, Self
+import uuid
 
 import redis.asyncio as redis
 from labs_agent_lib import get_logger
@@ -60,6 +61,7 @@ class JobRedisField(StrEnum):
     SESSION_ID = "session_id"
     COMPLETED = "completed"
     REVISION_NUMBER = "revision_number"
+    CORRELATION_ID = "correlation_id"
 
 
 @dataclass(frozen=True, slots=True)
@@ -71,6 +73,7 @@ class JobStatus:
     has_content: bool
     missing_fields: list[str]
     session_id: str | None = None
+    correlation_id: str | None = None
 
     @property
     def is_completed(self) -> bool:
@@ -85,6 +88,7 @@ class UnifiedResumeJob(BaseModel):
     file_name: str
     file_path: str
     session_id: str | None = None
+    correlation_id: str | None = None
     is_completed: bool = Field(
         default=False,
         validation_alias=AliasChoices("is_completed", JobRedisField.COMPLETED),
@@ -222,6 +226,11 @@ class RedisJobStore:
                 JobRedisField.FILE_PATH: file_path,
                 JobRedisField.COMPLETED: self._encode_bool(False),
                 JobRedisField.REVISION_NUMBER: "0",
+                # Minted once per job and reused across every revision/retry - the
+                # cross-service id that joins this job's prompt-log/agent-transcript
+                # records with the ones mcp-skills-extractor-agents writes for the
+                # same file.
+                JobRedisField.CORRELATION_ID: uuid.uuid4().hex,
             }
             async with self.redis.pipeline(transaction=True) as pipe:
                 pipe.hset(key, mapping=initial_data)
@@ -240,6 +249,7 @@ class RedisJobStore:
             has_content=bool(state.get(JobRedisField.CONTENT)),
             missing_fields=[f for f in self.extraction_fields if not state.get(f)],
             session_id=state.get(JobRedisField.SESSION_ID),
+            correlation_id=state.get(JobRedisField.CORRELATION_ID),
         )
 
     async def increment_attempts(self, file_path: str) -> int:
