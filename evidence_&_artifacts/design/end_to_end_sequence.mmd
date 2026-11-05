@@ -1,0 +1,57 @@
+sequenceDiagram
+    autonumber
+    actor Rec as Recruiter
+    participant API as Upload API (Starlette)
+    participant Vol as Pod-local volume
+    participant Poll as Background Poller
+    participant Guard as CoordinatorGuardrail
+    participant Redis as Redis checkpoint store
+    participant Coord as Coordinator Agent (Claude SDK)
+    participant MCP as MCP Server
+    participant Sub as Sub-agent (per tool)
+
+    Rec->>API: POST /resume (multipart file)
+    API->>Vol: write file to resume_dir
+    API-->>Rec: 201 Created
+
+    loop every poll_interval_seconds
+        Poll->>Vol: scan resume_dir / job_posting_dir
+        Poll->>Guard: pre_execution_hook(file_path)
+        Guard->>Redis: get_status, increment revision_number
+
+        alt all mandatory fields already checkpointed
+            Guard->>Vol: move file to processed/
+        else revision_number exceeds max_revision_number
+            Guard->>Vol: move file to failed/
+        else extraction work remaining
+            Guard-->>Poll: allowed_tools (missing fields only)
+            Poll->>Coord: run_coordinator(file_path, allowed_tools)
+            Coord->>Coord: Phase 1 - structure raw text into formatted tags
+            Coord->>Redis: save_content(formatted text)
+            Note over Coord,Guard: every phase logged via labs_agent_lib.get_logger
+
+            par fan-out, same turn, in parallel
+                Coord->>MCP: extract_technical_skills(content)
+                MCP->>Sub: run grounded sub-agent
+                Sub-->>MCP: JSON array
+                opt output fails schema validation
+                    MCP->>Sub: self-correction turn, bounded retries
+                end
+                MCP-->>Coord: validated skills JSON
+            and
+                Coord->>MCP: extract_soft_skills / extract_certifications / extract_languages
+                Note over MCP,Sub: identical self-correction pattern, independent per tool
+            end
+
+            Guard->>Coord: PreToolUse hook checks each call against Redis state
+            Coord->>Redis: save_agent_result(field, json) per completed tool
+            Coord->>Guard: post_execution_hook(session_id, stop_reason)
+            Guard->>Redis: save_session_and_completion
+
+            alt is_completed
+                Guard->>Vol: move file to processed/
+            else still missing fields, revision budget remains
+                Note over Poll,Redis: file stays in place, retried next cycle for missing fields only
+            end
+        end
+    end

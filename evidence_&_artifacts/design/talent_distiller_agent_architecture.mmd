@@ -1,0 +1,64 @@
+flowchart TB
+    classDef api fill:#1f6feb,color:#fff,stroke:#0b4a9e
+    classDef agent fill:#8957e5,color:#fff,stroke:#5f2ea3
+    classDef guard fill:#da3633,color:#fff,stroke:#8e1f1d
+    classDef store fill:#2da44e,color:#fff,stroke:#1a7431
+    classDef obs fill:#9a6700,color:#fff,stroke:#6b4a00
+    classDef infra fill:#30363d,color:#fff,stroke:#010409
+
+    Rec["Recruiter / upstream system"] -->|"POST /resume
+POST /job_posting (multipart)"| API
+
+    subgraph POD["Kubernetes Deployment: talent-distiller-agent (horizontally scaled replicas)"]
+        direction TB
+        API["Starlette API
+/healthz . /resume . /job_posting"]:::api
+        VOL["Pod-local emptyDir
+resume/ . job_posting/ . processed/ . failed/"]:::infra
+        POLL["Background Poller
+2 concurrent asyncio loops
+(resume + job_posting), batched"]:::agent
+        COORD["Coordinator Agent
+Claude Agent SDK client
+1 system prompt per DocumentType"]:::agent
+        GUARD["CoordinatorGuardrail"]:::guard
+        G1["pre_execution_hook
+completion / max-revision short-circuit,
+computes allowed_tools from missing fields"]:::guard
+        G2["PreToolUse SDK hook
+denies duplicate or premature tool calls"]:::guard
+        G3["post_execution_hook
+persists session id, completion, routes file"]:::guard
+        LOG["labs_agent_lib.get_logger
+structured, leveled logs per phase"]:::obs
+
+        API --> VOL
+        VOL --> POLL
+        POLL -->|"asyncio.gather, in-process"| COORD
+        GUARD --- G1
+        GUARD --- G2
+        GUARD --- G3
+        COORD <--> GUARD
+        COORD -.-> LOG
+        GUARD -.-> LOG
+    end
+
+    GUARD <-->|"per-file hash: revision_number,
+content, 8 extraction fields, errors
+24h TTL, idempotent checkpoints"| REDIS[("Redis
+checkpoint store")]:::store
+
+    COORD ==>|"4 parallel MCP tool calls
+mcp__candidate-skill-agent-*
+streamable-HTTP"| MCPSVC
+
+    subgraph MCPSVC["Kubernetes Service: mcp-skills-extractor-agents (independently deployed & scaled)"]
+        MCP["MCP Server(s)
+see companion diagram"]:::agent
+    end
+
+    G3 -->|"is_completed"| PROC["processed/ folder"]:::infra
+    G1 & G3 -->|"revision budget exhausted"| FAILED["failed/ folder"]:::infra
+
+    K8S["Kubernetes liveness/readiness probes
+GET /healthz"]:::obs -.-> API
