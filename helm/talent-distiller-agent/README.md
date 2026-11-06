@@ -24,9 +24,9 @@ docker build -t talent-distiller-agent:local .
 docker run --rm -p 8080:8080 --env-file .env talent-distiller-agent:local
 
 # Build and publish to a registry
-docker build -t talent-distiller-agent:0.1.2 .
-docker tag talent-distiller-agent:0.1.2 luigisamurai/talent-distiller-agent:0.1.2
-docker push luigisamurai/talent-distiller-agent:0.1.2
+docker build -t talent-distiller-agent:0.1.3 .
+docker tag talent-distiller-agent:0.1.3 luigisamurai/talent-distiller-agent:0.1.3
+docker push luigisamurai/talent-distiller-agent:0.1.3
 ```
 
 The image's entrypoint is `talent-distiller-agent-api` (HTTP API + background loop).
