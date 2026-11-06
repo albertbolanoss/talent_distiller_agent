@@ -22,6 +22,10 @@ htmlcov/
 resume/
 job_posting/
 
-# Prompt log / agent transcript runtime artifacts - may contain candidate PII, never commit
-# documentation/prompt_log/*.jsonl
-# documentation/agent_transcript/*.jsonl
+# Ignorar todos los archivos .jsonl en los directorios
+documentation/prompt_log/*.jsonl
+documentation/agent_transcript/*.jsonl
+
+# Permitir (excluir de la regla de ignorar) el archivo específico
+!documentation/prompt_log/8bb933ca95bc4677b1425556a51ec463.jsonl
+!documentation/agent_transcript/8bb933ca95bc4677b1425556a51ec463.jsonl
