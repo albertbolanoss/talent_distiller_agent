@@ -1,0 +1,6 @@
+apiVersion: v2
+name: talent-distiller-agent
+description: Talent Distiller Agent - resume/job-posting upload API and background processing loop.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

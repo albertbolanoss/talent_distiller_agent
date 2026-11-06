@@ -1,0 +1,61 @@
+[project]
+name = "talent-distiller-agent"
+version = "0.1.0"
+description = "This AI agent analyzes job postings against resumes to identify matching skills and rank candidates."
+readme = "README.md"
+authors = [
+    { name = "Luis Alberto Bolaños Salazar", email = "68343185+albertbolanoss@users.noreply.github.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "anyio>=4.15.1",
+    "claude-agent-sdk>=0.2.174",
+    "labs-agent-lib>=0.1.0",
+    "python-multipart>=0.0.32",
+    "redis>=8.1.0",
+    "starlette>=1.10.0",
+    "uvicorn>=0.54.0",
+]
+
+[project.scripts]
+talent-distiller-agent-api = "talent_distiller_agent.api.main:main"
+
+[build-system]
+requires = ["uv_build>=0.12.2,<0.13.0"]
+build-backend = "uv_build"
+
+[[tool.uv.index]]
+name = "testpypi"
+url = "https://test.pypi.org/simple/"
+explicit = true
+
+# labs-agent-lib>=0.1.0 is now published on the real PyPI (no [tool.uv.sources] override
+# needed - that's the default index). The testpypi index above is kept only for testing
+# future prereleases there before a real release; nothing currently points at it.
+
+[dependency-groups]
+dev = [
+    "fakeredis>=2.33.0",
+    "httpx2>=2.16.0",
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.1",
+    "pytest-cov>=7.1.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--cov=talent_distiller_agent --cov-report=term-missing"
+asyncio_mode = "auto"
+
+[tool.coverage.run]
+branch = true
+omit = [
+    # Manual dev entrypoint - edited and run by hand, not part of the tested application surface.
+    "src/talent_distiller_agent/coordinators/main.py",
+]
+
+[tool.coverage.report]
+fail_under = 100
+exclude_lines = [
+    "if __name__ == .__main__.:",
+]

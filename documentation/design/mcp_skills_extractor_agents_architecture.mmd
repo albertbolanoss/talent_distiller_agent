@@ -1,0 +1,69 @@
+flowchart TB
+    classDef transport fill:#1f6feb,color:#fff,stroke:#0b4a9e
+    classDef server fill:#30363d,color:#fff,stroke:#010409
+    classDef agent fill:#8957e5,color:#fff,stroke:#5f2ea3
+    classDef data fill:#2da44e,color:#fff,stroke:#1a7431
+    classDef obs fill:#9a6700,color:#fff,stroke:#6b4a00
+    classDef resil fill:#da3633,color:#fff,stroke:#8e1f1d
+
+    CALLER["talent-distiller-agent Coordinator
+(MCP client, 1 HTTP alias per tool)"] --> TRANSPORT
+
+    subgraph TRANSPORT["Transport layer: mcp SDK v2"]
+        direction LR
+        T1["stdio
+local dev / MCP Inspector"]:::transport
+        T2["streamable-http . /mcp
+cluster-to-cluster, production"]:::transport
+        T3["sse . /sse
+legacy, kept for parity"]:::transport
+    end
+
+    TRANSPORT --> SRV["MCPServer: MCPSkillsExtractorAgents
+registers tools conditionally from
+CANDIDATE_SKILL_AGENT_ACTIVE_TOOLS"]:::server
+    SRV --- PROMPT["MCP Prompt: coordinator_orchestration
+parallel fan-out instructions for any MCP client"]:::server
+
+    SRV --> TOOL_TECH & TOOL_SOFT & TOOL_CERT & TOOL_LANG
+
+    subgraph SUBAGENTS["4 independently-scalable sub-agents (one Helm release per tool, or all-in-one)"]
+        TOOL_TECH["extract_technical_skills"]:::agent
+        TOOL_SOFT["extract_soft_skills"]:::agent
+        TOOL_CERT["extract_certifications"]:::agent
+        TOOL_LANG["extract_languages"]:::agent
+    end
+
+    TOOL_TECH --> TAX1["common_technical_skills
+common_seniority_levels"]:::data
+    TOOL_SOFT --> TAX2["common_soft_skills"]:::data
+    TOOL_CERT --> TAX3["common_certifications"]:::data
+    TOOL_LANG --> TAX4["common_languages
+common_language_proficiency_levels"]:::data
+
+    subgraph PATTERN["Shared per-tool execution pattern (identical in all 4 sub-agents)"]
+        direction TB
+        RUN["Claude Agent SDK call
+grounded in canonical taxonomy + output contract"]:::agent
+        PARSE["Parse + Pydantic-validate JSON output"]:::resil
+        OK["Return canonicalized, schema-valid result"]:::resil
+        RETRY["Self-correction turn
+same session, up to max_retries (default 2)"]:::resil
+        FAIL["RuntimeError once attempts are exhausted
+surfaced to the coordinator as a tool error -
+no retry here; outer revision_number loop retries later"]:::resil
+
+        RUN --> PARSE
+        PARSE -->|"valid"| OK
+        PARSE -->|"invalid JSON / schema mismatch"| RETRY
+        RETRY --> RUN
+        RETRY -->|"attempts exhausted"| FAIL
+    end
+
+    TOOL_TECH -.->|"every call runs this pattern"| PATTERN
+    TOOL_SOFT -.-> PATTERN
+    TOOL_CERT -.-> PATTERN
+    TOOL_LANG -.-> PATTERN
+
+    SRV -.->|"per-attempt structured logs"| OBS["labs_agent_lib.get_logger
+INFO / WARNING per attempt"]:::obs

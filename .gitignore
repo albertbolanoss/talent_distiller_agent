@@ -1,0 +1,31 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Local secrets
+.env
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+
+
+# Resume
+resume/
+job_posting/
+
+# Ignorar todos los archivos .jsonl en los directorios
+documentation/prompt_log/*.jsonl
+documentation/agent_transcript/*.jsonl
+
+# Permitir (excluir de la regla de ignorar) el archivo específico
+!documentation/prompt_log/8bb933ca95bc4677b1425556a51ec463.jsonl
+!documentation/agent_transcript/8bb933ca95bc4677b1425556a51ec463.jsonl

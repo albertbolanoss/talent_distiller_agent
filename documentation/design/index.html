@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Talent Distiller — Multi-Agent System Design</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg-card: #161b22;
+    --border: #30363d;
+    --text: #c9d1d9;
+    --text-strong: #f0f6fc;
+    --text-muted: #8b949e;
+    --accent: #58a6ff;
+
+    --c-api: #1f6feb;
+    --c-agent: #8957e5;
+    --c-guard: #da3633;
+    --c-store: #2da44e;
+    --c-obs: #9a6700;
+    --c-infra: #30363d;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+  }
+
+  header {
+    padding: 36px 24px 24px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, #11151c 0%, #0d1117 100%);
+  }
+
+  header h1 {
+    margin: 0 0 6px;
+    font-size: 1.9rem;
+    color: var(--text-strong);
+    letter-spacing: -0.01em;
+  }
+
+  header p.subtitle {
+    margin: 0 0 14px;
+    color: var(--text-muted);
+    font-size: 1.02rem;
+  }
+
+  header p.note {
+    margin: 0 auto;
+    max-width: 760px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  header p.note code {
+    background: #1c2129;
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: var(--accent);
+  }
+
+  nav {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    flex-wrap: wrap;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-card);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  nav a {
+    color: var(--text);
+    text-decoration: none;
+    font-size: 0.92rem;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+  }
+  nav a:hover { border-color: var(--border); color: var(--text-strong); }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 20px;
+    justify-content: center;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    background: #0f1420;
+    font-size: 0.85rem;
+  }
+  .legend .chip { display: flex; align-items: center; gap: 8px; color: var(--text-muted); }
+  .legend .swatch { width: 14px; height: 14px; border-radius: 3px; display: inline-block; flex-shrink: 0; }
+
+  main { max-width: 1200px; margin: 0 auto; padding: 28px 24px 60px; }
+
+  section.card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 22px 24px 26px;
+    margin-bottom: 34px;
+    scroll-margin-top: 70px;
+  }
+
+  section.card h2 {
+    margin: 0 0 4px;
+    color: var(--text-strong);
+    font-size: 1.3rem;
+  }
+
+  section.card p.desc {
+    margin: 6px 0 16px;
+    color: var(--text-muted);
+    max-width: 880px;
+    font-size: 0.95rem;
+  }
+
+  .skills {
+    margin: 0 0 18px;
+    padding: 10px 16px 10px 32px;
+    background: #0f1420;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+  .skills li { margin: 3px 0; }
+  .skills strong { color: var(--text); }
+
+  .diagram-wrap {
+    overflow-x: auto;
+    background: #0a0d12;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+  }
+
+  .mermaid { display: flex; justify-content: center; }
+
+  footer {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    padding: 20px;
+    border-top: 1px solid var(--border);
+  }
+
+  footer a { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Talent Distiller — Multi-Agent System Design</h1>
+  <p class="subtitle">Hub-and-spoke AI agent orchestration · MCP-based microservice boundary · resilience &amp; observability by design</p>
+  <p class="note">
+    Rendered client-side with <code>Mermaid.js</code> (via CDN) — just open this file in any
+    browser, nothing to install. Each diagram's source is also kept as a standalone
+    <code>.mmd</code> file next to this one, for pasting into
+    <a href="https://mermaid.live" target="_blank" rel="noopener">mermaid.live</a> /
+    mermaid.ai, or for the Mermaid preview extension in VS Code.
+  </p>
+</header>
+
+<nav>
+  <a href="#talent-distiller">1 · Talent Distiller Agent — System Architecture</a>
+  <a href="#mcp-server">2 · MCP Skills Extractor Agents — Sub-Agent Architecture</a>
+  <a href="#sequence">3 · End-to-End Sequence (cross-repo)</a>
+</nav>
+
+<div class="legend">
+  <span class="chip"><span class="swatch" style="background:var(--c-api)"></span>API / transport boundary</span>
+  <span class="chip"><span class="swatch" style="background:var(--c-agent)"></span>AI agent / sub-agent</span>
+  <span class="chip"><span class="swatch" style="background:var(--c-guard)"></span>Guardrail &amp; resilience logic</span>
+  <span class="chip"><span class="swatch" style="background:var(--c-store)"></span>Data / checkpoint state</span>
+  <span class="chip"><span class="swatch" style="background:var(--c-obs)"></span>Observability</span>
+  <span class="chip"><span class="swatch" style="background:var(--c-infra)"></span>Infrastructure / Kubernetes</span>
+</div>
+
+<main>
+
+  <section class="card" id="talent-distiller">
+    <h2>1 · Talent Distiller Agent — System Architecture</h2>
+    <p class="desc">
+      The orchestration service: a Starlette upload API and a background poller share one
+      process/pod so a file is always processed by the pod that received it. The Coordinator
+      agent (Claude Agent SDK) fans out to the extraction MCP server while a three-point
+      guardrail enforces idempotency against Redis before, during, and after every turn.
+    </p>
+    <ul class="skills">
+      <li><strong>AI agent orchestration</strong> — single coordinator agent, parallel tool fan-out, per-document-type system prompts from one shared code path.</li>
+      <li><strong>Resilience</strong> — Redis-backed, field-granular checkpointing; bounded revision retries; partial progress survives crashes and restarts.</li>
+      <li><strong>Microservice boundary</strong> — the extraction capability is a separate MCP service, reachable only over the network, independently deployable and scalable.</li>
+      <li><strong>Observability</strong> — structured logging at every phase; Kubernetes liveness/readiness probes on <code>/healthz</code>.</li>
+    </ul>
+    <div class="diagram-wrap">
+      <pre class="mermaid">
+flowchart TB
+    classDef api fill:#1f6feb,color:#fff,stroke:#0b4a9e
+    classDef agent fill:#8957e5,color:#fff,stroke:#5f2ea3
+    classDef guard fill:#da3633,color:#fff,stroke:#8e1f1d
+    classDef store fill:#2da44e,color:#fff,stroke:#1a7431
+    classDef obs fill:#9a6700,color:#fff,stroke:#6b4a00
+    classDef infra fill:#30363d,color:#fff,stroke:#010409
+
+    Rec["Recruiter / upstream system"] -->|"POST /resume
+POST /job_posting (multipart)"| API
+
+    subgraph POD["Kubernetes Deployment: talent-distiller-agent (horizontally scaled replicas)"]
+        direction TB
+        API["Starlette API
+/healthz . /resume . /job_posting"]:::api
+        VOL["Pod-local emptyDir
+resume/ . job_posting/ . processed/ . failed/"]:::infra
+        POLL["Background Poller
+2 concurrent asyncio loops
+(resume + job_posting), batched"]:::agent
+        COORD["Coordinator Agent
+Claude Agent SDK client
+1 system prompt per DocumentType"]:::agent
+        GUARD["CoordinatorGuardrail"]:::guard
+        G1["pre_execution_hook
+completion / max-revision short-circuit,
+computes allowed_tools from missing fields"]:::guard
+        G2["PreToolUse SDK hook
+denies duplicate or premature tool calls"]:::guard
+        G3["post_execution_hook
+persists session id, completion, routes file"]:::guard
+        LOG["labs_agent_lib.get_logger
+structured, leveled logs per phase"]:::obs
+
+        API --> VOL
+        VOL --> POLL
+        POLL -->|"asyncio.gather, in-process"| COORD
+        GUARD --- G1
+        GUARD --- G2
+        GUARD --- G3
+        COORD <--> GUARD
+        COORD -.-> LOG
+        GUARD -.-> LOG
+    end
+
+    GUARD <-->|"per-file hash: revision_number,
+content, 8 extraction fields, errors
+24h TTL, idempotent checkpoints"| REDIS[("Redis
+checkpoint store")]:::store
+
+    COORD ==>|"4 parallel MCP tool calls
+mcp__candidate-skill-agent-*
+streamable-HTTP"| MCPSVC
+
+    subgraph MCPSVC["Kubernetes Service: mcp-skills-extractor-agents (independently deployed & scaled)"]
+        MCP["MCP Server(s)
+see companion diagram"]:::agent
+    end
+
+    G3 -->|"is_completed"| PROC["processed/ folder"]:::infra
+    G1 & G3 -->|"revision budget exhausted"| FAILED["failed/ folder"]:::infra
+
+    K8S["Kubernetes liveness/readiness probes
+GET /healthz"]:::obs -.-> API
+      </pre>
+    </div>
+  </section>
+
+  <section class="card" id="mcp-server">
+    <h2>2 · MCP Skills Extractor Agents — Sub-Agent Architecture</h2>
+    <p class="desc">
+      The extraction microservice: an MCP server (3 interchangeable transports) exposing 4
+      independent Claude Agent SDK sub-agents, each grounded in this project's own canonical
+      taxonomy and enforcing a strict output contract with bounded self-correction.
+    </p>
+    <ul class="skills">
+      <li><strong>Specialized sub-agents</strong> — one agent per extraction domain, each grounded in its own canonical taxonomy resource instead of a single generic prompt.</li>
+      <li><strong>Resilience</strong> — Pydantic-validated output with a bounded self-correction loop on the same session before failing the call outward.</li>
+      <li><strong>Independent scalability</strong> — <code>CANDIDATE_SKILL_AGENT_ACTIVE_TOOLS</code> lets any subset of tools run as its own Helm release, scaled separately from the rest.</li>
+      <li><strong>Protocol-first design</strong> — the Model Context Protocol is the service boundary itself: any MCP-compliant client can consume these tools, not just this project's coordinator.</li>
+    </ul>
+    <div class="diagram-wrap">
+      <pre class="mermaid">
+flowchart TB
+    classDef transport fill:#1f6feb,color:#fff,stroke:#0b4a9e
+    classDef server fill:#30363d,color:#fff,stroke:#010409
+    classDef agent fill:#8957e5,color:#fff,stroke:#5f2ea3
+    classDef data fill:#2da44e,color:#fff,stroke:#1a7431
+    classDef obs fill:#9a6700,color:#fff,stroke:#6b4a00
+    classDef resil fill:#da3633,color:#fff,stroke:#8e1f1d
+
+    CALLER["talent-distiller-agent Coordinator
+(MCP client, 1 HTTP alias per tool)"] --> TRANSPORT
+
+    subgraph TRANSPORT["Transport layer: mcp SDK v2"]
+        direction LR
+        T1["stdio
+local dev / MCP Inspector"]:::transport
+        T2["streamable-http . /mcp
+cluster-to-cluster, production"]:::transport
+        T3["sse . /sse
+legacy, kept for parity"]:::transport
+    end
+
+    TRANSPORT --> SRV["MCPServer: MCPSkillsExtractorAgents
+registers tools conditionally from
+CANDIDATE_SKILL_AGENT_ACTIVE_TOOLS"]:::server
+    SRV --- PROMPT["MCP Prompt: coordinator_orchestration
+parallel fan-out instructions for any MCP client"]:::server
+
+    SRV --> TOOL_TECH & TOOL_SOFT & TOOL_CERT & TOOL_LANG
+
+    subgraph SUBAGENTS["4 independently-scalable sub-agents (one Helm release per tool, or all-in-one)"]
+        TOOL_TECH["extract_technical_skills"]:::agent
+        TOOL_SOFT["extract_soft_skills"]:::agent
+        TOOL_CERT["extract_certifications"]:::agent
+        TOOL_LANG["extract_languages"]:::agent
+    end
+
+    TOOL_TECH --> TAX1["common_technical_skills
+common_seniority_levels"]:::data
+    TOOL_SOFT --> TAX2["common_soft_skills"]:::data
+    TOOL_CERT --> TAX3["common_certifications"]:::data
+    TOOL_LANG --> TAX4["common_languages
+common_language_proficiency_levels"]:::data
+
+    subgraph PATTERN["Shared per-tool execution pattern (identical in all 4 sub-agents)"]
+        direction TB
+        RUN["Claude Agent SDK call
+grounded in canonical taxonomy + output contract"]:::agent
+        PARSE["Parse + Pydantic-validate JSON output"]:::resil
+        OK["Return canonicalized, schema-valid result"]:::resil
+        RETRY["Self-correction turn
+same session, up to max_retries (default 2)"]:::resil
+        FAIL["RuntimeError once attempts are exhausted
+surfaced to the coordinator as a tool error -
+no retry here; outer revision_number loop retries later"]:::resil
+
+        RUN --> PARSE
+        PARSE -->|"valid"| OK
+        PARSE -->|"invalid JSON / schema mismatch"| RETRY
+        RETRY --> RUN
+        RETRY -->|"attempts exhausted"| FAIL
+    end
+
+    TOOL_TECH -.->|"every call runs this pattern"| PATTERN
+    TOOL_SOFT -.-> PATTERN
+    TOOL_CERT -.-> PATTERN
+    TOOL_LANG -.-> PATTERN
+
+    SRV -.->|"per-attempt structured logs"| OBS["labs_agent_lib.get_logger
+INFO / WARNING per attempt"]:::obs
+      </pre>
+    </div>
+  </section>
+
+  <section class="card" id="sequence">
+    <h2>3 · End-to-End Sequence (cross-repo)</h2>
+    <p class="desc">
+      One complete file-processing cycle across both services, from upload to persisted
+      result — including the two places retries happen: the bounded self-correction loop
+      inside each extraction sub-agent, and the outer revision-budget loop that re-polls
+      only the fields still missing.
+    </p>
+    <div class="diagram-wrap">
+      <pre class="mermaid">
+sequenceDiagram
+    autonumber
+    actor Rec as Recruiter
+    participant API as Upload API (Starlette)
+    participant Vol as Pod-local volume
+    participant Poll as Background Poller
+    participant Guard as CoordinatorGuardrail
+    participant Redis as Redis checkpoint store
+    participant Coord as Coordinator Agent (Claude SDK)
+    participant MCP as MCP Server
+    participant Sub as Sub-agent (per tool)
+
+    Rec->>API: POST /resume (multipart file)
+    API->>Vol: write file to resume_dir
+    API-->>Rec: 201 Created
+
+    loop every poll_interval_seconds
+        Poll->>Vol: scan resume_dir / job_posting_dir
+        Poll->>Guard: pre_execution_hook(file_path)
+        Guard->>Redis: get_status, increment revision_number
+
+        alt all mandatory fields already checkpointed
+            Guard->>Vol: move file to processed/
+        else revision_number exceeds max_revision_number
+            Guard->>Vol: move file to failed/
+        else extraction work remaining
+            Guard-->>Poll: allowed_tools (missing fields only)
+            Poll->>Coord: run_coordinator(file_path, allowed_tools)
+            Coord->>Coord: Phase 1 - structure raw text into formatted tags
+            Coord->>Redis: save_content(formatted text)
+            Note over Coord,Guard: every phase logged via labs_agent_lib.get_logger
+
+            par fan-out, same turn, in parallel
+                Coord->>MCP: extract_technical_skills(content)
+                MCP->>Sub: run grounded sub-agent
+                Sub-->>MCP: JSON array
+                opt output fails schema validation
+                    MCP->>Sub: self-correction turn, bounded retries
+                end
+                MCP-->>Coord: validated skills JSON
+            and
+                Coord->>MCP: extract_soft_skills / extract_certifications / extract_languages
+                Note over MCP,Sub: identical self-correction pattern, independent per tool
+            end
+
+            Guard->>Coord: PreToolUse hook checks each call against Redis state
+            Coord->>Redis: save_agent_result(field, json) per completed tool
+            Coord->>Guard: post_execution_hook(session_id, stop_reason)
+            Guard->>Redis: save_session_and_completion
+
+            alt is_completed
+                Guard->>Vol: move file to processed/
+            else still missing fields, revision budget remains
+                Note over Poll,Redis: file stays in place, retried next cycle for missing fields only
+            end
+        end
+    end
+      </pre>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  Talent Distiller Agent &amp; MCP Skills Extractor Agents — architecture design evidence · generated for internal review
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: "base",
+    themeVariables: {
+      darkMode: true,
+      background: "#0a0d12",
+      primaryColor: "#161b22",
+      primaryTextColor: "#f0f6fc",
+      primaryBorderColor: "#30363d",
+      lineColor: "#8b949e",
+      secondaryColor: "#21262d",
+      tertiaryColor: "#0d1117",
+      actorBkg: "#161b22",
+      actorBorder: "#30363d",
+      actorTextColor: "#f0f6fc",
+      signalColor: "#8b949e",
+      signalTextColor: "#c9d1d9",
+      labelBoxBkgColor: "#161b22",
+      labelBoxBorderColor: "#30363d",
+      labelTextColor: "#f0f6fc",
+      loopTextColor: "#f0f6fc",
+      noteBkgColor: "#9a6700",
+      noteTextColor: "#fff",
+      noteBorderColor: "#6b4a00"
+    },
+    flowchart: { curve: "basis" },
+    securityLevel: "strict"
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,109 @@
+replicaCount: 3
+
+image:
+  repository: luigisamurai/talent-distiller-agent
+  tag: "0.1.2"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+serviceAccount:
+  create: true
+  name: ""
+
+podAnnotations: {}
+
+service:
+  # NodePort makes `minikube service` work out of the box. Switch to ClusterIP (and front it
+  # with an Ingress) or LoadBalancer for a real cluster.
+  type: NodePort
+  port: 80
+  targetPort: 8080
+
+probes:
+  path: /healthz
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 300
+  failureThreshold: 3
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+resumeVolume:
+  # Ephemeral, per-pod emptyDir - a resume uploaded to one pod is only processed by that same
+  # pod's background loop, not by the other replicas. Swap for a ReadWriteMany PVC if the
+  # resume folder ever needs to be shared across pods.
+  sizeLimit: 256Mi
+
+jobPostingVolume:
+  # Same ephemeral, per-pod emptyDir tradeoff as resumeVolume, but for job_posting_dir.
+  sizeLimit: 256Mi
+
+config:
+  # --- labs_agent_lib.AgentSettings (rendered with the LABS_AGENT_LIB_ prefix) ---
+  provider: portkey
+  logLevel: INFO
+  disablePromptCaching: "false"
+  # Portkey provider/credential alias (e.g. "aws-bedrock-use2") - an identifier, not a credential,
+  # so it lives in the ConfigMap rather than the Secret below. Optional; leave empty if your
+  # Portkey workspace doesn't route through a specific virtual key.
+  portkeyVirtual: "aws-bedrock-use2"
+
+  # --- talent_distiller_agent.settings.Settings: Resume settings ---
+  resumeDir: /app/resume
+  resumePollIntervalSeconds: "300"
+  resumeMaxFilesPerBatch: "3"
+  # Leave empty to default to "<resumeDir>/processed" / "<resumeDir>/failed".
+  coordinatorProcessedFolder: ""
+  coordinatorFailedFolder: ""
+
+  # --- talent_distiller_agent.settings.Settings: Job Posting settings ---
+  jobPostingDir: /app/job_posting
+  jobPostingPollIntervalSeconds: "300"
+  jobPostingMaxFilesPerBatch: "3"
+  # Leave empty to default to "<jobPostingDir>/processed" / "<jobPostingDir>/failed".
+  jobPostingProcessedFolder: ""
+  jobPostingFailedFolder: ""
+
+  # --- talent_distiller_agent.settings.Settings: Shared MCP & Coordinator settings ---
+  # URL of each extraction tool's candidate-skill-agent MCP server (streamable HTTP transport,
+  # must end in /mcp). This pod reaches those servers as an in-cluster client, so these must be
+  # cluster-DNS Service names/ports (NOT the 127.0.0.1/localhost addresses from that chart's
+  # README, which only work for `kubectl port-forward` run on your own machine - using those
+  # here leaves every tool call unreachable, with the coordinator retrying silently until its
+  # revision guardrail gives up).
+  #
+  # Defaults below assume the mcp-skills-extractor-agents chart installed one release per tool
+  # (see its README) named skill-agent-technical/-soft/-certifications/-languages in this same
+  # namespace. If you installed it as a single do-everything release instead, point all four at
+  # that one Service, e.g. "http://mcp-skills-extractor-agents/mcp" (or your fullnameOverride).
+  # Cross-namespace, use the FQDN form: "http://skill-agent-technical.<namespace>.svc.cluster.local/mcp".
+  skillAgentTechnicalMcpUrl: "http://skill-agent-technical/mcp"
+  skillAgentSoftMcpUrl: "http://skill-agent-soft/mcp"
+  skillAgentCertificationsMcpUrl: "http://skill-agent-certifications/mcp"
+  skillAgentLanguagesMcpUrl: "http://skill-agent-languages/mcp"
+  coordinatorModel: "us.anthropic.claude-haiku-4-5-20251001-v1:0"
+  coordinatorMaxRevisionNumber: "10"
+  coordinatorMcpToolIdleTimeoutMs: "600000"
+  
+  # --- talent_distiller_agent.settings.Settings: Redis ---
+  # This chart doesn't deploy Redis itself - point this at your own Redis Service/host
+  # (e.g. "redis-master.default.svc.cluster.local") before deploying to a real cluster.
+  redisHost: "localhost"
+  redisDb: "0"
+
+# Placeholder credentials only - do NOT put real secrets here or commit real values.
+# Override at install time instead, e.g.:
+#   helm install talent-distiller-agent ./helm/talent-distiller-agent \
+#     --set secrets.portkeyApiKey=***
+# or with a separate, untracked values file (helm install ... -f secrets.values.yaml).
+secrets:
+  portkeyApiKey: ""
+  anthropicApiKey: ""
+  redisPassword: ""

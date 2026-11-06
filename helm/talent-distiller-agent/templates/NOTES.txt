@@ -1,0 +1,24 @@
+{{ .Chart.Name }} has been installed.
+
+1. Check pod status:
+     kubectl get pods -l app.kubernetes.io/instance={{ .Release.Name }}
+
+2. Reach the service:
+{{- if eq .Values.service.type "NodePort" }}
+     minikube service {{ include "talent-distiller-agent.fullname" . }} --url
+{{- else if eq .Values.service.type "LoadBalancer" }}
+     kubectl get svc {{ include "talent-distiller-agent.fullname" . }} -w
+{{- else }}
+     kubectl port-forward svc/{{ include "talent-distiller-agent.fullname" . }} 8080:{{ .Values.service.port }}
+{{- end }}
+
+3. Check health:
+     curl <service-url>/healthz
+
+4. Upload a resume:
+     curl -F "file=@/path/to/resume.pdf" <service-url>/resumes
+
+NOTE: the Secret this chart creates ships with empty placeholder credentials (see
+`secrets.*` in values.yaml). The health and upload endpoints work without them, but the
+background resume-processing loop needs real Portkey/Anthropic credentials to call the
+model - set them with `--set secrets.xxx=...` or a separate, untracked values file.
