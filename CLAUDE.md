@@ -14,7 +14,9 @@ in a sibling repo and is called over MCP (the "spokes"):
   sub-agents as tools.
 - **`labs-agent-lib`** (sibling repo, published as a package) — shared utilities used
   throughout this repo: `get_logger`, `extract_text`, `file_writer`,
-  `get_agent_settings`/`get_agent_environment`, `file_reader.SUPPORTED_EXTENSIONS`.
+  `get_agent_settings`/`get_agent_environment`, `file_reader.SUPPORTED_EXTENSIONS`, and
+  the `PromptLogWriter`/`AgentTranscriptWriter` observability writers (also used by
+  `mcp_skills_extractor_agents`).
 
 Both are expected to be cloned as sibling directories during local development (see
 README "Project Repositories"), and the MCP server must be running for the Coordinator
@@ -152,10 +154,14 @@ orchestration prompts instruct the model to pass it as an explicit tool argument
 extraction call, because there's no other way to tie a Coordinator run to the MCP-side
 sub-agent calls it triggers (the SDK's own `session_id` isn't known until the turn ends,
 and the actual HTTP call to the MCP server is made by the `claude` CLI subprocess, not
-this repo's Python). `observability/prompt_log.py` and `observability/agent_transcript.py`
-both write JSONL keyed by this id under `documentation/prompt_log/` and
-`documentation/agent_transcript/` (gitignored except for one committed sample file), and
-can be globally disabled via `TALENT_DISTILLER_AGENT_OBSERVABILITY_ENABLED=false`.
+this repo's Python). The writers themselves - `PromptLogWriter`/`AgentTranscriptWriter` -
+are centralized in `labs_agent_lib.observability` (shared with `mcp_skills_extractor_agents`,
+which needs the same JSONL mechanics but keyed one file per tool instead of one per run);
+this repo just constructs them with its own `Settings` object and `service="talent_distiller_agent"`
+in `coordinators/coordinator.py`. They write JSONL keyed by `correlation_id` under
+`documentation/prompt_log/` and `documentation/agent_transcript/` (gitignored except for
+one committed sample file), and can be globally disabled via
+`TALENT_DISTILLER_AGENT_OBSERVABILITY_ENABLED=false`.
 
 ### Settings
 

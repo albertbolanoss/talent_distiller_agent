@@ -13,10 +13,9 @@ from claude_agent_sdk import (
     ToolUseBlock,
     UserMessage,
 )
-from labs_agent_lib import get_logger
+from labs_agent_lib import AgentTranscriptWriter, get_logger
 
 from talent_distiller_agent.mcp_client import EXTRACTION_TOOL_TO_FIELD
-from talent_distiller_agent.observability import AgentTranscriptWriter
 from talent_distiller_agent.storage import (
     DESIRABLE_PREFIX,
     DocumentType,

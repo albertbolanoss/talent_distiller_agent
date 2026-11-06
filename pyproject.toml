@@ -10,7 +10,7 @@ requires-python = ">=3.14"
 dependencies = [
     "anyio>=4.15.1",
     "claude-agent-sdk>=0.2.174",
-    "labs-agent-lib>=0.4.2",
+    "labs-agent-lib>=0.1.0",
     "python-multipart>=0.0.32",
     "redis>=8.1.0",
     "starlette>=1.10.0",
@@ -29,9 +29,9 @@ name = "testpypi"
 url = "https://test.pypi.org/simple/"
 explicit = true
 
-[tool.uv.sources]
-# labs-agent-lib = { path = "../labs-agent-lib" }
-labs-agent-lib = { index = "testpypi" }
+# labs-agent-lib>=0.1.0 is now published on the real PyPI (no [tool.uv.sources] override
+# needed - that's the default index). The testpypi index above is kept only for testing
+# future prereleases there before a real release; nothing currently points at it.
 
 [dependency-groups]
 dev = [
