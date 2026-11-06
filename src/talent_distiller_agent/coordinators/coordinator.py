@@ -6,6 +6,8 @@ from typing import Any
 
 from claude_agent_sdk import ClaudeAgentOptions, ClaudeSDKClient
 from labs_agent_lib import (
+    AgentTranscriptWriter,
+    PromptLogWriter,
     extract_text,
     get_agent_environment,
     get_agent_settings,
@@ -14,7 +16,6 @@ from labs_agent_lib import (
 
 from talent_distiller_agent.guardrails import CoordinatorGuardrail
 from talent_distiller_agent.mcp_client import get_skill_agent_mcp_servers
-from talent_distiller_agent.observability import AgentTranscriptWriter, PromptLogWriter
 from talent_distiller_agent.prompts import (
     JOB_POSTING_COORDINATOR_ORCHESTRATION_PROMPT,
     RESUME_COORDINATOR_ORCHESTRATION_PROMPT,
@@ -30,6 +31,7 @@ from .message_stream_handler import AGENT_NAME, process_coordinator_stream
 
 logger = get_logger(__name__)
 MODULE = "[Coordinator]"
+SERVICE_NAME = "talent_distiller_agent"
 
 
 @dataclass(frozen=True, slots=True)
@@ -131,8 +133,8 @@ async def run_coordinator(
                 )
 
                 correlation_id = status.correlation_id or ""
-                prompt_log = PromptLogWriter(settings)
-                transcript = AgentTranscriptWriter(settings)
+                prompt_log = PromptLogWriter(settings, service=SERVICE_NAME)
+                transcript = AgentTranscriptWriter(settings, service=SERVICE_NAME)
                 prompt_log.log_prompt(
                     correlation_id=correlation_id,
                     agent=AGENT_NAME,

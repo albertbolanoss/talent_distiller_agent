@@ -393,8 +393,8 @@ wheels = [
 
 [[package]]
 name = "labs-agent-lib"
-version = "0.4.2"
-source = { registry = "https://test.pypi.org/simple/" }
+version = "0.1.0"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "docx2txt" },
     { name = "pydantic" },
@@ -402,9 +402,9 @@ dependencies = [
     { name = "pymupdf" },
     { name = "python-dotenv" },
 ]
-sdist = { url = "https://test-files.pythonhosted.org/packages/7d/a8/050d526aa593a0fe1c6f47ab6b9a94acfa3220ce6634fe010d360adf3d18/labs_agent_lib-0.4.2.tar.gz", hash = "sha256:040b4d0143dcb36a8c27c44428e9bb9a7434d05ffe3502053e374c818d7cd222", size = 6284, upload-time = "2026-10-29T03:29:31.765Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/bd/df/b1288fe3922f3a1569e2f6386d2497598c863daf1e44b8cba5bd7c9b00fb/labs_agent_lib-0.1.0.tar.gz", hash = "sha256:d915da67123e43806ae135f481bac437226caafa9385e7aa9920f4e220f88872", size = 8793, upload-time = "2026-11-06T00:54:26.836Z" }
 wheels = [
-    { url = "https://test-files.pythonhosted.org/packages/93/b7/b2a375c085c407ce651c787a27748aef8e55032c0fc4fa0d243169566f31/labs_agent_lib-0.4.2-py3-none-any.whl", hash = "sha256:29d9b7c98856b6510309876ea5cc8aafbf6099202a613e1eb7ff64074fe4e9cc", size = 10758, upload-time = "2026-10-29T03:29:30.892Z" },
+    { url = "https://files.pythonhosted.org/packages/58/35/eb89f233a9b8cd13338a085b754d2771e2a26f74bba9b22d2a1474be6098/labs_agent_lib-0.1.0-py3-none-any.whl", hash = "sha256:49bd222c096d8448ca5d564b20ac2414751d00fad30494c8899f8f5cc1c6c694", size = 15424, upload-time = "2026-11-06T00:54:25.61Z" },
 ]
 
 [[package]]
@@ -1030,7 +1030,7 @@ dev = [
 requires-dist = [
     { name = "anyio", specifier = ">=4.15.1" },
     { name = "claude-agent-sdk", specifier = ">=0.2.174" },
-    { name = "labs-agent-lib", specifier = ">=0.4.2", index = "https://test.pypi.org/simple/" },
+    { name = "labs-agent-lib", specifier = ">=0.1.0" },
     { name = "python-multipart", specifier = ">=0.0.32" },
     { name = "redis", specifier = ">=8.1.0" },
     { name = "starlette", specifier = ">=1.10.0" },

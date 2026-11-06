@@ -11,6 +11,7 @@ from claude_agent_sdk import (
     ToolUseBlock,
     UserMessage,
 )
+from labs_agent_lib import AgentTranscriptWriter
 
 from talent_distiller_agent.coordinators.message_stream_handler import (
     _extract_formatted_content,
@@ -18,7 +19,6 @@ from talent_distiller_agent.coordinators.message_stream_handler import (
     _is_desirable_tool_input,
     process_coordinator_stream,
 )
-from talent_distiller_agent.observability import AgentTranscriptWriter
 from talent_distiller_agent.storage import DocumentType
 from talent_distiller_agent.storage.redis_job_store import JobStatus
 
@@ -34,7 +34,7 @@ class _DisabledObservabilitySettings:
     agent_transcript_dir = "unused"
 
 
-_NOOP_TRANSCRIPT = AgentTranscriptWriter(_DisabledObservabilitySettings())
+_NOOP_TRANSCRIPT = AgentTranscriptWriter(_DisabledObservabilitySettings(), service="talent_distiller_agent")
 
 EXTRACT_TECH_TOOL = "mcp__candidate-skill-agent-technical__extract_technical_skills"
 EXTRACT_SOFT_TOOL = "mcp__candidate-skill-agent-soft__extract_soft_skills"

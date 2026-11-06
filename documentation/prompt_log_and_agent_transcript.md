@@ -104,9 +104,18 @@ Both files share an envelope:
 | `tool_result` | Every tool result that comes back | `tool_use_id`, `tool_name`, `target_field`, `is_error`, `output` |
 | `session_end` | Once, when the turn's `ResultMessage` arrives | `session_id`, `stop_reason`, `is_error` |
 
-Source: `src/talent_distiller_agent/observability/` (`prompt_log.py`,
-`agent_transcript.py`, `_jsonl_writer.py`), wired into
-`coordinators/coordinator.py` and `coordinators/message_stream_handler.py`
+Source: the two writer classes (`PromptLogWriter`, `AgentTranscriptWriter`) live in
+`labs_agent_lib.observability` (`labs-agent-lib`, the shared package, not this repo) -
+they're **centralized there** because `mcp-skills-extractor-agents` needs the exact same
+JSONL mechanics and event schema, just keyed one file per `{correlation_id}__{tool_name}`
+instead of one per `{correlation_id}` (see that repo's own
+`documentation/prompt_log_and_agent_transcript.md` for why). Each project still supplies
+its *own* settings object (`Settings.observability_enabled`/`prompt_log_dir`/
+`agent_transcript_dir`) and a `service` name at construction time - nothing about the
+`TALENT_DISTILLER_AGENT_*` env vars moved. This repo constructs them in
+`coordinators/coordinator.py` (`PromptLogWriter(settings, service="talent_distiller_agent")`,
+`AgentTranscriptWriter(settings, service="talent_distiller_agent")`) and wires the calls
+into `coordinators/coordinator.py` and `coordinators/message_stream_handler.py`
 (`process_coordinator_stream`) at the exact points that already logged these events via
 `labs_agent_lib.get_logger` - this feature adds a structured, durable line next to each
 existing log statement, it doesn't replace the logging.
@@ -139,3 +148,12 @@ feature is file-based by design for local/dev-mode observability and to establis
 schema and `correlation_id` contract between the two services. Shipping these events to
 a persistent or centralized sink (e.g. a mounted volume, an object store, or an
 OpenTelemetry/log-aggregation backend) is future work, not implemented here.
+
+## 8. Depending on `labs-agent-lib`
+
+`labs-agent-lib>=0.1.0` (the real, production PyPI release - independently versioned
+from its TestPyPI history, which already had this same observability module at `0.5.0`)
+is required; earlier real-PyPI releases don't exist, since `0.1.0` was its first
+production publish. No `[tool.uv.sources]` override is needed - `pyproject.toml`
+resolves it from the default index. The `testpypi` index entry is kept only for testing
+future prereleases there before cutting a real release.
