@@ -2,8 +2,8 @@
 
 Diagrams for the two repositories that make up this hub-and-spoke multi-agent system:
 
-- **talent_distiller_agent** (this repo) — upload API + coordinator orchestration.
-- **mcp-skills-extractor-agents** (sibling repo, `../../mcp-skills-extractor-agents/src`) — the MCP server exposing the 4 extraction sub-agents.
+- [**talent_distiller_agent** (this repo) — upload API + coordinator orchestration](https://github.com/albertbolanoss/talent_distiller_agent/).
+- [**mcp-skills-extractor-agents** (sibling repo, `../../mcp-skills-extractor-agents/src`) — the MCP server exposing the 4 extraction sub-agents.](https://github.com/albertbolanoss/mcp_skills_extractor_agents)  
 
 ## How to view
 
@@ -21,9 +21,9 @@ CDN) — no local Node/npm, no browser extension, no account.
 
 | File | Diagram | What it shows |
 | --- | --- | --- |
-| `talent_distiller_agent_architecture.mmd` | Component/flowchart | The orchestration service: in-pod API + poller, the Coordinator agent, the 3-point guardrail, Redis checkpointing, and the network boundary to the extraction MCP service. |
-| `mcp_skills_extractor_agents_architecture.mmd` | Component/flowchart | The extraction microservice: transport layer, the 4 independent sub-agents, their canonical-taxonomy grounding, and the shared validate/self-correct/fail pattern every tool call runs. |
-| `end_to_end_sequence.mmd` | Sequence diagram | One full file-processing cycle across both services — upload, polling, parallel tool fan-out, bounded self-correction, checkpointing, and the outer retry-by-missing-field loop. |
+| [talent_distiller_agent_architecture.mmd](./talent_distiller_agent_architecture.mmd) | Component/flowchart | The orchestration service: in-pod API + poller, the Coordinator agent, the 3-point guardrail, Redis checkpointing, and the network boundary to the extraction MCP service. |
+| [mcp_skills_extractor_agents_architecture.mmd](./mcp_skills_extractor_agents_architecture.mmd) | Component/flowchart | The extraction microservice: transport layer, the 4 independent sub-agents, their canonical-taxonomy grounding, and the shared validate/self-correct/fail pattern every tool call runs. |
+| [end_to_end_sequence.mmd](./end_to_end_sequence.mmd) | Sequence diagram | One full file-processing cycle across both services — upload, polling, parallel tool fan-out, bounded self-correction, checkpointing, and the outer retry-by-missing-field loop. |
 | `index.html` | Viewer | Self-contained page that renders all three diagrams above with a legend and short "skills demonstrated" callouts per diagram. |
 
 ## What these diagrams are meant to demonstrate
@@ -43,9 +43,3 @@ CDN) — no local Node/npm, no browser extension, no account.
 All diagram sources were syntax-checked against the real Mermaid parser (`mermaid.parse()`)
 before being committed here.
 
-## Related
-
-- [`../prompt_log_and_agent_transcript.md`](../prompt_log_and_agent_transcript.md) -
-  the Prompt Log / Agent Transcript observability feature that extends the
-  `end_to_end_sequence.mmd` flow above with a durable, correlated record of every
-  prompt/response/tool-call in both services.
