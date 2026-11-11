@@ -186,14 +186,14 @@ The API exposes one upload endpoint per document type. Both accept a multipart `
 
     ```sh
     curl -X POST http://localhost:8080/resume \
-      -F "file=@document_samples/resume_sample.txt"
+      -F "file=@document_samples/resume_sample.pdf"
     ```
 
 *   **Job postings** — `POST /job_posting`, saved into `job_posting_dir`:
 
     ```sh
     curl -X POST http://localhost:8080/job_posting \
-      -F "file=@document_samples/job_posting_sample.txt"
+      -F "file=@document_samples/job_posting.docx"
     ```
 
 

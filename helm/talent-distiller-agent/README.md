@@ -153,9 +153,9 @@ kubectl port-forward svc/skill-agent-languages 8003:80
 ## 5. Execute the upload endpoints
 
 ```sh
-curl -F "file=@document_samples/resume_sample.txt" http://localhost:8084/resume
+curl -F "file=@document_samples/resume_sample.pdf" http://localhost:8084/resume
 
-curl -F "file=@document_samples/job_posting_sample.txt" http://localhost:8084/job_posting
+curl -F "file=@document_samples/job_posting.docx" http://localhost:8084/job_posting
 ```
 
 ## 6. Install mcp_skills_extractor_agents 
