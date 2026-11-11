@@ -24,9 +24,9 @@ docker build -t talent-distiller-agent:local .
 docker run --rm -p 8080:8080 --env-file .env talent-distiller-agent:local
 
 # Build and publish to a registry
-docker build -t talent-distiller-agent:0.1.3 .
-docker tag talent-distiller-agent:0.1.3 luigisamurai/talent-distiller-agent:0.1.3
-docker push luigisamurai/talent-distiller-agent:0.1.3
+docker build -t talent-distiller-agent:0.1.4 .
+docker tag talent-distiller-agent:0.1.4 luigisamurai/talent-distiller-agent:0.1.4
+docker push luigisamurai/talent-distiller-agent:0.1.4
 ```
 
 The image's entrypoint is `talent-distiller-agent-api` (HTTP API + background loop).
@@ -108,7 +108,7 @@ Then install the chart, pointing it at the Redis instance from step 2:
 
 ```sh
 # Install the chart
-helm install talent-distiller-agent ./helm/talent-distiller-agent --set secrets.portkeyApiKey="" --set config.resumePollIntervalSeconds="30" --set config.redisHost="redis-master" --set secrets.redisPassword="" --set replicaCount="1" --set image.tag="0.1.3"
+helm install talent-distiller-agent ./helm/talent-distiller-agent --set secrets.portkeyApiKey="" --set config.resumePollIntervalSeconds="30" --set config.redisHost="redis-master" --set secrets.redisPassword="" --set replicaCount="1" --set image.tag="0.1.4"
 
 # ...or upgrade an existing install, overriding a value
 helm upgrade talent-distiller-agent ./helm/talent-distiller-agent --set secrets.portkeyApiKey="" --set config.resumePollIntervalSeconds="30" --set config.redisHost="redis-master" --set secrets.redisPassword="<password from step 2>" --set replicaCount="1"  --set image.tag="0.1.3"
@@ -126,6 +126,28 @@ The `Service` is `NodePort` by default (switch `service.type` to `ClusterIP` + a
 ```sh
 kubectl port-forward svc/talent-distiller-agent 8084:80
 # then open http://localhost:8080
+```
+
+**Note : !important; Make sure you have deployed and enabled the MCP servers for the data extraction tools and set up port forwarding for local testing.
+
+[Guide to deploy tool MCP servers](https://github.com/albertbolanoss/mcp_skills_extractor_agents/blob/main/helm/mcp-skills-extractor-agents/README.md).
+
+```sh
+# forwarding more than one Service at once needs a distinct local port each, in separate
+# terminals, e.g.:
+
+kubectl port-forward svc/skill-agent-technical 8000:80
+# then point an MCP client at http://localhost:8000/mcp
+
+kubectl port-forward svc/skill-agent-soft 8001:80
+# then point an MCP client at http://localhost:8001/mcp
+
+kubectl port-forward svc/skill-agent-certifications 8002:80
+# then point an MCP client at http://localhost:8002/mcp
+
+kubectl port-forward svc/skill-agent-languages 8003:80
+# then point an MCP client at http://localhost:8003/mcp
+
 ```
 
 ## 5. Execute the upload endpoints
